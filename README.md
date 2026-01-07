@@ -29,10 +29,15 @@ You need OAuth2 credentials for both YouTube and Gmail.
 - Go to **Workflows** -> **Import from File**.
 - Select `youtube_upload_workflow.json`.
 
-### 4. Setup Credentials in n8n
-- In the workflow, click on the **YouTube Upload** node.
-- Create a new credential and paste your Client ID and Client Secret.
-- Repeat the same for the **Gmail Notification** node.
+### 4. Setup Extension
+- Open Chrome and go to `chrome://extensions/`.
+- Enable **Developer mode**.
+- Click **Load unpacked** and select the `extension/` folder in this repository.
+- Pin the extension and click the icon.
+- Enter the **Test Webhook URL** from your n8n Webhook node.
+
+### 5. Setup Credentials in n8n
+... (rest of instructions)
 
 ### 5. Run the Automation
 - Place your `.mp4` files in the `videos/` folder within this repository.

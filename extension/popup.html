@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Antigravity Uploader</h1>
+        <div class="field">
+            <label for="title">Video Title</label>
+            <input type="text" id="title" placeholder="Enter video title">
+        </div>
+        <div class="field">
+            <label for="description">Description</label>
+            <textarea id="description" placeholder="Enter description"></textarea>
+        </div>
+        <div class="field">
+            <label for="webhook">n8n Webhook URL</label>
+            <input type="text" id="webhook" placeholder="http://localhost:5678/rest/webhooks/...">
+        </div>
+        <button id="uploadBtn">Upload to YouTube</button>
+        <div id="status"></div>
+    </div>
+    <script src="popup.js"></script>
+</body>
+</html>

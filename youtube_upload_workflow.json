@@ -1,42 +1,34 @@
 {
   "nodes": [
     {
-      "parameters": {},
-      "id": "76165e31-897b-404c-8302-3f81e64f8490",
-      "name": "When clicking \"Execute Workflow\"",
-      "type": "n8n-nodes-base.manualTrigger",
-      "typeVersion": 1,
-      "position": [
-        380,
-        240
-      ]
-    },
-    {
       "parameters": {
-        "fileSelector": "/home/node/videos/*.mp4"
+        "httpMethod": "POST",
+        "path": "upload-video",
+        "options": {}
       },
-      "id": "e2e8e31a-6a5c-4ea6-a7dc-3240e8e9f5a0",
-      "name": "Read Video Folder",
-      "type": "n8n-nodes-base.readBinaryFiles",
+      "id": "webhook-trigger",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
       "position": [
-        600,
+        200,
         240
-      ]
+      ],
+      "webhookId": "upload-video"
     },
     {
       "parameters": {
-        "title": "={{ $json.fileName }}",
-        "description": "Uploaded via n8n automation",
+        "title": "={{ $json.body.title }}",
+        "description": "={{ $json.body.description }}",
         "categoryId": "22",
         "privacyStatus": "unlisted"
       },
-      "id": "b3e3e31a-6a5c-4ea6-a7dc-3240e8e9f5a0",
+      "id": "youtube-upload",
       "name": "YouTube Upload",
       "type": "n8n-nodes-base.googleYouTube",
       "typeVersion": 1,
       "position": [
-        820,
+        420,
         240
       ],
       "credentials": {
@@ -53,12 +45,12 @@
         "message": "Video has been uploaded.\n\nTitle: {{ $json.snippet.title }}\nURL: https://www.youtube.com/watch?v={{ $json.id }}",
         "appendAttributions": false
       },
-      "id": "d3e3e31a-6a5c-4ea6-a7dc-3240e8e9f5a0",
+      "id": "gmail-notification",
       "name": "Gmail Notification",
       "type": "n8n-nodes-base.googleGmail",
       "typeVersion": 2,
       "position": [
-        1040,
+        640,
         240
       ],
       "credentials": {
@@ -70,18 +62,7 @@
     }
   ],
   "connections": {
-    "When clicking \"Execute Workflow\"": {
-      "main": [
-        [
-          {
-            "node": "Read Video Folder",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Read Video Folder": {
+    "Webhook": {
       "main": [
         [
           {
