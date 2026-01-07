@@ -1,0 +1,107 @@
+{
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "76165e31-897b-404c-8302-3f81e64f8490",
+      "name": "When clicking \"Execute Workflow\"",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        380,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "fileSelector": "/home/node/videos/*.mp4"
+      },
+      "id": "e2e8e31a-6a5c-4ea6-a7dc-3240e8e9f5a0",
+      "name": "Read Video Folder",
+      "type": "n8n-nodes-base.readBinaryFiles",
+      "typeVersion": 1,
+      "position": [
+        600,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "title": "={{ $json.fileName }}",
+        "description": "Uploaded via n8n automation",
+        "categoryId": "22",
+        "privacyStatus": "unlisted"
+      },
+      "id": "b3e3e31a-6a5c-4ea6-a7dc-3240e8e9f5a0",
+      "name": "YouTube Upload",
+      "type": "n8n-nodes-base.googleYouTube",
+      "typeVersion": 1,
+      "position": [
+        820,
+        240
+      ],
+      "credentials": {
+        "googleYouTubeOAuth2Api": {
+          "id": "PLEASE_CREATE_YOUR_CREDENTIALS",
+          "name": "YouTube Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "USER_EMAIL_HERE",
+        "subject": "YouTube Upload Successful",
+        "message": "Video has been uploaded.\n\nTitle: {{ $json.snippet.title }}\nURL: https://www.youtube.com/watch?v={{ $json.id }}",
+        "appendAttributions": false
+      },
+      "id": "d3e3e31a-6a5c-4ea6-a7dc-3240e8e9f5a0",
+      "name": "Gmail Notification",
+      "type": "n8n-nodes-base.googleGmail",
+      "typeVersion": 2,
+      "position": [
+        1040,
+        240
+      ],
+      "credentials": {
+        "googleGmailOAuth2Api": {
+          "id": "PLEASE_CREATE_YOUR_CREDENTIALS",
+          "name": "Gmail Account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When clicking \"Execute Workflow\"": {
+      "main": [
+        [
+          {
+            "node": "Read Video Folder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Video Folder": {
+      "main": [
+        [
+          {
+            "node": "YouTube Upload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "YouTube Upload": {
+      "main": [
+        [
+          {
+            "node": "Gmail Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
