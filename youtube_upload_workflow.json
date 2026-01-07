@@ -18,8 +18,21 @@
     },
     {
       "parameters": {
-        "title": "={{ $json.body.title }}",
-        "description": "={{ $json.body.description }}",
+        "fileSelector": "/home/node/videos/*.mp4"
+      },
+      "id": "read-vids",
+      "name": "Read Video File",
+      "type": "n8n-nodes-base.readBinaryFiles",
+      "typeVersion": 1,
+      "position": [
+        400,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "title": "={{ $node[\"Webhook\"].json[\"body\"][\"title\"] }}",
+        "description": "={{ $node[\"Webhook\"].json[\"body\"][\"description\"] }}",
         "categoryId": "22",
         "privacyStatus": "unlisted"
       },
@@ -28,12 +41,12 @@
       "type": "n8n-nodes-base.googleYouTube",
       "typeVersion": 1,
       "position": [
-        420,
+        600,
         240
       ],
       "credentials": {
         "googleYouTubeOAuth2Api": {
-          "id": "PLEASE_CREATE_YOUR_CREDENTIALS",
+          "id": "YouTube Account",
           "name": "YouTube Account"
         }
       }
@@ -50,12 +63,12 @@
       "type": "n8n-nodes-base.googleGmail",
       "typeVersion": 2,
       "position": [
-        640,
+        800,
         240
       ],
       "credentials": {
         "googleGmailOAuth2Api": {
-          "id": "PLEASE_CREATE_YOUR_CREDENTIALS",
+          "id": "Gmail Account",
           "name": "Gmail Account"
         }
       }
@@ -63,6 +76,17 @@
   ],
   "connections": {
     "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Read Video File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Video File": {
       "main": [
         [
           {
