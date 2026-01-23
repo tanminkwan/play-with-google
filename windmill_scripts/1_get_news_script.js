@@ -8,8 +8,9 @@ export async function main(keyword, language = "Korean", model = "openai") {
     // Since we mounted the app folder to /home/node/app, we can use relative paths or change directory.
     // However, it's better to use variables for API keys.
 
-    const { generateNewsScriptWithOpenAI } = await import("/home/node/app/openai_news_search.js");
-    const { generateNewsScript } = await import("/home/node/app/gemini_news_search.js");
+    const { APP_DIR } = await import("./path_config.js");
+    const { generateNewsScriptWithOpenAI } = await import(`${APP_DIR}/openai_news_search.js`);
+    const { generateNewsScript } = await import(`${APP_DIR}/gemini_news_search.js`);
 
     let scriptData;
     if (model === "openai") {

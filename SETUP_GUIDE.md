@@ -102,33 +102,41 @@ node pipeline.js "전기차 화재 문제" "Korean"
 
 ## 5. Windmill 파이프라인 구성 가이드
 
-실제 자동화를 위해 Windmill에서 Flow를 구성하는 방법입니다.
+실제 자동화를 위해 Windmill에서 Flow를 구성하는 방법입니다. 본 프로젝트는 유지보수를 위해 모든 경로 설정을 **한 곳에서 관리**하도록 설계되었습니다.
 
-1. **스크립트 등록**: `windmill_scripts/` 폴더 내의 5개 파일 내용을 Windmill UI의 **Scripts** 탭에 각각 등록합니다.
-2. **Resource 설정**: API 키들을 Windmill의 **Variables**나 **Resource Types**로 등록하여 관리합니다.
-3. **Flow 생성**: 등록한 스크립트들을 순서대로 배치합니다.
+1. **공통 경로 설정 등록**: `windmill_scripts/path_config.js`를 Windmill **Scripts** 탭에 가장 먼저 등록합니다.
+   - 이 파일에 정의된 `APP_DIR` ("/home/node/app")이 모든 스크립트의 기준이 됩니다.
+2. **스크립트 등록**: `windmill_scripts/` 폴더 내의 5개 파일(1~5번)을 각각 등록합니다.
+   - 모든 스크립트는 내부적으로 `path_config.js`를 임포트하여 앱 루트 경로를 참조합니다.
+3. **Flow 생성**: 등록한 스크립트들을 순서대로 배치하여 워크플로우를 만듭니다.
    - `Step 1 (Script)` -> `Step 2 (TTS)` & `Step 3 (Images)` 병렬 실행 -> `Step 4 (Video)` -> `Step 5 (Upload)`
 4. **실행**: Keyword와 Language를 입력하고 **Run**을 클릭하면 모든 과정이 자동으로 진행됩니다.
 
 ---
 
-## 6. Windmill CLI (`wmill`) 사용 가이드
+## 6. Windmill CLI (`wmill`) 사용 가이드 (일괄 등록)
 
-브라우저 UI를 사용하지 않고 터미널에서 파이프라인을 관리 및 실행할 수 있습니다.
+브라우저 UI에서 수동으로 복사하지 않고, 터미널에서 로컬 파일들을 한 번에 동기화할 수 있습니다.
 
-### 6.1 CLI 설치 및 설정
+### 6.1 CLI 설치 및 인증
 ```bash
 # 글로벌 설치
-npm install -g windmill-cli
+npm install -g wmill
 
-# 워크스페이스 추가 및 인증 (기본: default / http://localhost:8000)
-wmill workspace add MyWork default http://localhost:8000
+# Windmill 서버 로그인 (기본: admin/palm)
+wmill auth login --endpoint http://localhost:8000
 ```
 
-### 6.2 주요 명령어
-- **스크립트 실행**: `wmill script run f/get_news_script --args '{"keyword": "AI 뉴스", "language": "Korean"}'`
-- **Flow 실행**: `wmill flow run f/news_to_youtube_flow --args '{"keyword": "K-pop 위기"}'`
-- **로컬 동기화**: `wmill script push` (로컬 변경사항 업로드), `wmill sync pull` (서버 스크립트 다운로드)
+### 6.2 일괄 동기화 (Sync)
+로컬의 `windmill_scripts` 폴더를 서버와 연동합니다:
+```bash
+# 로컬 스크립트 일괄 푸시
+wmill sync push --local-dir windmill_scripts/
+```
+
+### 6.3 주요 명령어
+- **스크립트 실행**: `wmill script run u/admin/1_get_news_script --args '{"keyword": "AI 뉴스", "language": "Korean"}'`
+- **로컬 동기화**: `wmill sync push` (로컬 변경사항 업로드), `wmill sync pull` (서버 스크립트 다운로드)
 
 ---
 

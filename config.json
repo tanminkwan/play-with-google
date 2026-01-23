@@ -17,7 +17,7 @@
         "defaultModel": "openai",
         "openaiModel": "gpt-4o",
         "geminiModel": "gemini-2.0-flash-lite",
-        "scriptDuration": "1.5-minute",
+        "scriptDuration": "2.5-minute",
         "newsSearchPrompt": "Keyword: \"${keyword}\"\nLanguage: \"${language}\"\n\nTask:\n1. Use your internal knowledge to find the latest news about this keyword.\n2. Create a ${duration} natural dialogue script between two news anchors in ${language}:\n   - Anchor A: Male, enthusiastic voice, asks deep questions.\n   - Anchor B: Female, expert/friendly voice, provides key details.\n3. The tone must be engaging, conversational, and polished (NotebookLM podcast style).\n4. Include natural filler words and reactions appropriate for ${language} speakers.\n\nOutput format: MUST be a valid JSON object only:\n{\n  \"summary\": \"Overall summary of the topic in ${language}\",\n  \"script\": [\n    { \"speaker\": \"Anchor A\", \"text\": \"...\", \"emotion\": \"excited\" },\n    { \"speaker\": \"Anchor B\", \"text\": \"...\", \"emotion\": \"informative\" }\n  ]\n}"
     },
     "videoSettings": {
