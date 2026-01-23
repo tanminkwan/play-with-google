@@ -24,7 +24,7 @@ function getAudioDuration(filePath) {
  * 이미지와 음성 파일들을 합쳐 최종 mp4 영상을 생성하는 함수
  */
 async function generateFinalVideo() {
-    console.log("--- Final Video Assembly Starting ---");
+    console.log("--- Final Video Assembly with Logo Overlay Starting ---");
 
     const scenesDir = path.join(__dirname, 'videos', 'scenes');
     const outputDir = path.join(__dirname, 'videos');
@@ -35,7 +35,6 @@ async function generateFinalVideo() {
         throw new Error(`Scenes directory not found: ${scenesDir}`);
     }
 
-    // 1. 파일 목록 확보 및 정렬
     const files = fs.readdirSync(scenesDir);
     const sceneIndices = [...new Set(files
         .filter(f => f.startsWith('scene_') && f.endsWith('.mp3'))
@@ -46,71 +45,72 @@ async function generateFinalVideo() {
         throw new Error("No scenes found to process.");
     }
 
-    console.log(`Processing ${sceneIndices.length} scenes...`);
-
-    // 2. ffmpeg 인자 구성
-    const args = [];
-    let scaleFilters = "";
-    let concatInputs = "";
-
     const width = config.videoSettings?.width || 1920;
     const height = config.videoSettings?.height || 1080;
+    const logoSettings = config.logoOverlay || { enabled: false };
 
-    for (const [i, index] of sceneIndices.entries()) {
+    const args = [];
+    let filterComplex = "";
+    let concatInputs = "";
+    let inputCount = 0;
+
+    for (let i = 0; i < sceneIndices.length; i++) {
+        const index = sceneIndices[i];
         const img = path.join(scenesDir, `scene_${index}.png`);
         const aud = path.join(scenesDir, `scene_${index}.mp3`);
+        const logo = path.join(scenesDir, `scene_${index}_logo.png`);
 
-        if (fs.existsSync(aud) && fs.existsSync(img)) { // Ensure files exist before processing
+        if (fs.existsSync(aud) && fs.existsSync(img)) {
             const duration = getAudioDuration(aud);
 
-            // 입력 파일 추가 (이미지를 오디오 길이에 맞춤)
+            // 1. 배경 이미지 입력
             args.push('-loop', '1', '-t', duration.toString(), '-i', img);
-            args.push('-i', aud);
+            const imgInputIdx = inputCount++;
 
-            // 개별 장면 스케일링 필터
-            scaleFilters += `[${i * 2}:v]scale=${width}:${height}:force_original_aspect_ratio=decrease,pad=${width}:${height}:(ow-iw)/2:(oh-ih)/2,setsar=1[v${i}];`;
-            // concat 입력으로 추가
-            concatInputs += `[v${i}][${i * 2 + 1}:a]`;
-        } else {
-            console.warn(`Skipping scene ${index}: Missing audio (${aud}) or image (${img}) file.`);
+            // 2. 오디오 입력
+            args.push('-i', aud);
+            const audInputIdx = inputCount++;
+
+            // 3. 로고 입력 (존재할 경우)
+            let finalSceneV = `v${i}`;
+            if (logoSettings.enabled && fs.existsSync(logo)) {
+                args.push('-i', logo);
+                const logoInputIdx = inputCount++;
+
+                const logoWidth = logoSettings.width || 150;
+                const margin = logoSettings.margin || 20;
+                let overlayPos = "x=W-w-20:y=20"; // top-right default
+                if (logoSettings.position === "top-left") overlayPos = `x=${margin}:y=${margin}`;
+
+                filterComplex += `[${imgInputIdx}:v]scale=${width}:${height}:force_original_aspect_ratio=decrease,pad=${width}:${height}:(ow-iw)/2:(oh-ih)/2,setsar=1[bg${i}];`;
+                filterComplex += `[${logoInputIdx}:v]scale=${logoWidth}:-1[logo${i}];`;
+                filterComplex += `[bg${i}][logo${i}]overlay=${overlayPos}[v${i}];`;
+            } else {
+                filterComplex += `[${imgInputIdx}:v]scale=${width}:${height}:force_original_aspect_ratio=decrease,pad=${width}:${height}:(ow-iw)/2:(oh-ih)/2,setsar=1[v${i}];`;
+            }
+
+            concatInputs += `[${finalSceneV}][${audInputIdx}:a]`;
         }
     }
 
-    if (sceneIndices.length === 0) { // Re-check if any scenes were actually processed after filtering
-        throw new Error("No valid scenes found to process after checking file existence.");
-    }
-
-    const filterComplex = `${scaleFilters}${concatInputs}concat=n=${sceneIndices.length}:v=1:a=1[v][a]`;
+    filterComplex += `${concatInputs}concat=n=${sceneIndices.length}:v=1:a=1[outv][outa]`;
 
     args.push('-filter_complex', filterComplex);
-    args.push('-map', '[v]', '-map', '[a]');
+    args.push('-map', '[outv]', '-map', '[outa]');
     args.push('-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-shortest', '-y', outputPath);
 
-    // 3. ffmpeg 실행
     return new Promise((resolve, reject) => {
-        console.log("Executing FFmpeg...");
         const ffmpeg = spawn('ffmpeg', args);
-
-        ffmpeg.stderr.on('data', (data) => {
-            console.error(`ffmpeg ERROR: ${data}`);
-        });
-
+        ffmpeg.stderr.on('data', (data) => console.error(`ffmpeg: ${data}`));
         ffmpeg.on('close', (code) => {
-            if (code === 0) {
-                console.log("--- Success! Video Generated ---");
-                console.log(`Output: ${outputPath}`);
-                resolve(outputPath);
-            } else {
-                reject(new Error(`FFmpeg process exited with code ${code}`));
-            }
+            if (code === 0) resolve(outputPath);
+            else reject(new Error(`FFmpeg exited with ${code}`));
         });
     });
 }
 
-// 모듈 내보내기
 module.exports = { generateFinalVideo };
 
-// CLI 실행 처리
 if (require.main === module) {
     (async () => {
         try {

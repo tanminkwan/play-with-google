@@ -13,7 +13,12 @@ const config = fs.existsSync(configPath) ? JSON.parse(fs.readFileSync(configPath
  */
 async function downloadImage(url, outputPath) {
     return new Promise((resolve, reject) => {
-        https.get(url, (response) => {
+        const options = {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            }
+        };
+        https.get(url, options, (response) => {
             if (response.statusCode === 200) {
                 const file = fs.createWriteStream(outputPath);
                 response.pipe(file);
@@ -31,27 +36,65 @@ async function downloadImage(url, outputPath) {
 }
 
 /**
- * 대사(텍스트)를 분석하여 DALL-E용 시각적 묘사로 요약/변환하는 함수
+ * 로고 이미지를 검색하여 다운로드하는 함수 (하이브리드 방식 데모)
+ */
+/**
+ * 로고 이미지를 검색하여 다운로드하는 함수 (하이브리드 방식 일반화)
+ */
+async function searchAndDownloadLogo(entity, domain, outputPath) {
+    if (!domain && !entity) return null;
+
+    console.log(`Searching for logo for: ${entity} (Domain: ${domain})`);
+
+    // 1. 도메인이 있으면 Google Favicon API 활용 (Clearbit보다 접근성이 좋음)
+    let logoUrl = domain ? `https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://${domain}&size=128` : null;
+
+    // 2. 도메인이 없을 때만 설정 파일의 Fallback 리스트 활용
+    if (!logoUrl && entity && config.logoOverlay?.fallbackLogos) {
+        const fallbacks = config.logoOverlay.fallbackLogos;
+        const matchedKey = Object.keys(fallbacks).find(key => entity.toLowerCase().includes(key.toLowerCase()));
+        logoUrl = matchedKey ? fallbacks[matchedKey] : null;
+    }
+
+    if (logoUrl) {
+        console.log(`Found logo source: ${logoUrl}`);
+        try {
+            await module.exports.downloadImage(logoUrl, outputPath);
+            return outputPath;
+        } catch (err) {
+            console.error(`Failed to download logo: ${err.message}`);
+        }
+    } else {
+        console.log(`No logo found for ${entity}.`);
+    }
+
+    return null;
+}
+
+/**
+ * 대사(텍스트)를 분석하여 DALL-E용 시각적 묘사와 엔티티(회사명 등)를 추출하는 함수
  */
 async function optimizePromptForImage(openai, sceneText) {
     try {
         const response = await openai.chat.completions.create({
-            model: "gpt-4o",
+            model: config.pipeline?.openaiModel || "gpt-4o",
             messages: [
                 {
                     role: "system",
-                    content: config.imageGeneration?.optimizationPrompt || "You are a professional prompt engineer for DALL-E 3. Your task is to summarize a news script dialogue into a single visual description for a professional news broadcast scene. Focus on the core subject, environment, and atmosphere. Do not include text or dialogue in the image description. Output ONLY the optimized English prompt."
+                    content: config.imageGeneration?.optimizationPrompt || "You are a professional prompt engineer for DALL-E 3. Output ONLY a JSON object: {'optimizedPrompt': '...', 'entity': '...', 'domain': '...'}"
                 },
                 {
                     role: "user",
                     content: `Analyze this news scene text and create a visual description: "${sceneText}"`
                 }
             ],
+            response_format: { type: "json_object" }
         });
-        return response.choices[0].message.content.trim();
+
+        return JSON.parse(response.choices[0].message.content);
     } catch (error) {
         console.error("Prompt optimization failed, using original text:", error.message);
-        return sceneText;
+        return { optimizedPrompt: sceneText, entity: null, domain: null };
     }
 }
 
@@ -59,7 +102,7 @@ async function optimizePromptForImage(openai, sceneText) {
  * ./videos/scenes/*.txt 파일을 읽어 각 장면에 맞는 이미지를 DALL-E로 생성
  */
 async function generateImagesForScenes() {
-    console.log("--- DALL-E Image Generation Starting With Optimization ---");
+    console.log("--- DALL-E Image Generation Starting With Optimization & Entity Extraction ---");
 
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
@@ -73,7 +116,6 @@ async function generateImagesForScenes() {
         throw new Error(`Scenes directory not found: ${scenesDir}`);
     }
 
-    // 1. .txt 파일 목록 가져오기
     const files = fs.readdirSync(scenesDir)
         .filter(f => f.endsWith('.txt'))
         .sort((a, b) => {
@@ -86,33 +128,38 @@ async function generateImagesForScenes() {
 
     const results = [];
 
-    // 2. 각 파일에 대해 이미지 생성
     for (const file of files) {
         const filePath = path.join(scenesDir, file);
         const sceneText = fs.readFileSync(filePath, 'utf8');
         const sceneIndex = file.match(/\d+/)[0];
         const outputPath = path.join(scenesDir, `scene_${sceneIndex}.png`);
+        const logoPath = path.join(scenesDir, `scene_${sceneIndex}_logo.png`);
 
-        console.log(`[${results.length + 1}/${files.length}] Optimizing prompt and generating image for Scene ${sceneIndex}...`);
+        console.log(`[${results.length + 1}/${files.length}] Processing Scene ${sceneIndex}...`);
 
         try {
-            // 2-1. 프롬프트 최적화 (요약)
-            const optimizedPrompt = await optimizePromptForImage(openai, sceneText);
+            // 1. 프롬프트 최적화 및 엔티티 추출
+            const { optimizedPrompt, entity, domain } = await optimizePromptForImage(openai, sceneText);
             console.log(`Optimized Prompt: ${optimizedPrompt.substring(0, 100)}...`);
+            if (entity) console.log(`Detected Entity: ${entity} (Domain: ${domain})`);
 
-            // 2-2. DALL-E 호출
+            // 2. DALL-E 이미지 생성
             const response = await openai.images.generate({
                 model: config.imageGeneration?.model || "dall-e-3",
-                prompt: `${config.imageGeneration?.style || "A high-quality, photorealistic professional news broadcast scene."} ${optimizedPrompt}`,
+                prompt: `${config.imageGeneration?.style || ""} ${optimizedPrompt}`,
                 n: 1,
                 size: config.imageGeneration?.size || "1024x1024",
             });
 
             const imageUrl = response.data[0].url;
+            await module.exports.downloadImage(imageUrl, outputPath);
             console.log(`Image generated for Scene ${sceneIndex}`);
 
-            // 이미지 다운로드 및 저장
-            await module.exports.downloadImage(imageUrl, outputPath);
+            // 3. 엔티티가 있는 경우 로고 다운로드 시도 (하이브리드 방식 일반화)
+            if ((entity || domain) && config.logoOverlay?.enabled) {
+                await module.exports.searchAndDownloadLogo(entity, domain, logoPath);
+            }
+
             results.push(outputPath);
 
         } catch (error) {
@@ -124,10 +171,8 @@ async function generateImagesForScenes() {
     return results;
 }
 
-// 모듈 내보내기
-module.exports = { generateImagesForScenes, downloadImage };
+module.exports = { generateImagesForScenes, downloadImage, searchAndDownloadLogo };
 
-// CLI 실행 처리
 if (require.main === module) {
     (async () => {
         try {

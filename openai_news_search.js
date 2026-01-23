@@ -44,7 +44,8 @@ async function generateNewsScriptWithOpenAI(keyword, language = "Korean") {
     // 템플릿 변수 치환
     const prompt = promptTemplate
         .replace(/\${keyword}/g, keyword)
-        .replace(/\${language}/g, language);
+        .replace(/\${language}/g, language)
+        .replace(/\${duration}/g, config.pipeline?.scriptDuration || "2-minute");
 
     try {
         console.log(`--- Generating ${language} Script for: ${keyword} ---`);

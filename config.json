@@ -3,7 +3,7 @@
         "model": "dall-e-3",
         "size": "1792x1024",
         "style": "Simplified cartoon style, simple and clean background, flat design, vibrant colors.",
-        "optimizationPrompt": "You are a professional prompt engineer for DALL-E 3. Your task is to analyze a news script dialogue and create a single, evocative visual description that illustrates the core TOPIC or SUBJECT MATTER being discussed. DO NOT depict the news anchors or a news studio unless the text specifically requires it. Instead, visualize the real-world events or concepts described. Do not include text, speech bubbles, or dialogue. Output ONLY the optimized English prompt."
+        "optimizationPrompt": "You are a professional prompt engineer for DALL-E 3. Your task is to analyze a news script dialogue and create a single, evocative visual description. CRITICAL: Identify any proper nouns such as COMPANY NAMES, BRANDS, SCHOOLS, or specific LOCATIONS (e.g., Samsung, Apple, Harvard) and ensure they are preserved and central to the visual description. DO NOT depict news anchors or a news studio. Focus on the core TOPIC and the SPECIFIC ENTITIES mentioned. Do not include text, speech bubbles, or dialogue. Output ONLY a JSON object with three fields: 'optimizedPrompt' (the DALL-E prompt), 'entity' (the name of the main brand/company/entity identified, or null), and 'domain' (the official website domain of the entity, e.g., 'samsung.com', or null)."
     },
     "tts": {
         "model": "tts-1",
@@ -17,7 +17,8 @@
         "defaultModel": "openai",
         "openaiModel": "gpt-4o",
         "geminiModel": "gemini-2.0-flash-lite",
-        "newsSearchPrompt": "Keyword: \"${keyword}\"\nLanguage: \"${language}\"\n\nTask:\n1. Use your internal knowledge to find the latest news about this keyword.\n2. Create a 2-minute natural dialogue script between two news anchors in ${language}:\n   - Anchor A: Male, enthusiastic voice, asks deep questions.\n   - Anchor B: Female, expert/friendly voice, provides key details.\n3. The tone must be engaging, conversational, and polished (NotebookLM podcast style).\n4. Include natural filler words and reactions appropriate for ${language} speakers.\n\nOutput format: MUST be a valid JSON object only:\n{\n  \"summary\": \"Overall summary of the topic in ${language}\",\n  \"script\": [\n    { \"speaker\": \"Anchor A\", \"text\": \"...\", \"emotion\": \"excited\" },\n    { \"speaker\": \"Anchor B\", \"text\": \"...\", \"emotion\": \"informative\" }\n  ]\n}"
+        "scriptDuration": "1.5-minute",
+        "newsSearchPrompt": "Keyword: \"${keyword}\"\nLanguage: \"${language}\"\n\nTask:\n1. Use your internal knowledge to find the latest news about this keyword.\n2. Create a ${duration} natural dialogue script between two news anchors in ${language}:\n   - Anchor A: Male, enthusiastic voice, asks deep questions.\n   - Anchor B: Female, expert/friendly voice, provides key details.\n3. The tone must be engaging, conversational, and polished (NotebookLM podcast style).\n4. Include natural filler words and reactions appropriate for ${language} speakers.\n\nOutput format: MUST be a valid JSON object only:\n{\n  \"summary\": \"Overall summary of the topic in ${language}\",\n  \"script\": [\n    { \"speaker\": \"Anchor A\", \"text\": \"...\", \"emotion\": \"excited\" },\n    { \"speaker\": \"Anchor B\", \"text\": \"...\", \"emotion\": \"informative\" }\n  ]\n}"
     },
     "videoSettings": {
         "width": 1920,
@@ -28,5 +29,16 @@
     "youtube": {
         "privacyStatus": "unlisted",
         "defaultCategory": "25"
+    },
+    "logoOverlay": {
+        "enabled": true,
+        "position": "top-right",
+        "margin": 20,
+        "width": 150,
+        "fallbackLogos": {
+            "Samsung": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Samsung_wordmark.svg/1280px-Samsung_wordmark.svg.png",
+            "Apple": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Apple_logo_black.svg/800px-Apple_logo_black.svg.png",
+            "Google": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Google_2015_logo.svg/1200px-Google_2015_logo.svg.png"
+        }
     }
 }

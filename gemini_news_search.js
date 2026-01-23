@@ -1,6 +1,7 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 require('dotenv').config();
 const fs = require('fs');
+const path = require('path');
 
 /**
  * Gemini를 사용하여 뉴스를 검색하고 대화형 대본을 생성하는 모듈
@@ -16,27 +17,38 @@ async function generateNewsScript(keyword, language = "Korean") {
         model: "models/gemini-2.0-flash-lite",
     });
 
-    const prompt = `
-        Keyword: "${keyword}"
-        Language: "${language}"
+    // 설정 파일 로드
+    const configPath = path.join(__dirname, 'config.json');
+    const config = fs.existsSync(configPath) ? JSON.parse(fs.readFileSync(configPath, 'utf8')) : {};
+
+    // 설정 파일에서 프롬프트 템플릿 가져오기
+    let promptTemplate = config.pipeline?.newsSearchPrompt || `
+        Keyword: "\${keyword}"
+        Language: "\${language}"
         
         Task:
         1. Search for the latest and most relevant news articles about this keyword.
-        2. Summarize the findings in ${language}.
-        3. Create a 2-minute dialogue script between two news anchors (Anchor A - male, Anchor B - female) in ${language}.
-        4. The tone should be engaging, informative, and natural (like NotebookLM's Audio Overview in ${language}).
-        5. Include natural filler words and reactions appropriate for ${language} speakers.
+        2. Summarize the findings in \${language}.
+        3. Create a \${duration} dialogue script between two news anchors (Anchor A - male, Anchor B - female) in \${language}.
+        4. The tone should be engaging, informative, and natural (like NotebookLM's Audio Overview in \${language}).
+        5. Include natural filler words and reactions appropriate for \${language} speakers.
         6. Return the result in the following JSON format:
         {
-          "summary": "General summary of the news in ${language}",
+          "summary": "General summary of the news in \${language}",
           "script": [
-            { "speaker": "Anchor A", "text": "Dialogue in ${language}...", "emotion": "excited" },
-            { "speaker": "Anchor B", "text": "Dialogue in ${language}...", "emotion": "surprised" }
+            { "speaker": "Anchor A", "text": "Dialogue in \${language}...", "emotion": "excited" },
+            { "speaker": "Anchor B", "text": "Dialogue in \${language}...", "emotion": "surprised" }
           ]
         }
         
-        Important: Return ONLY the JSON object. The entire content must be in ${language}.
+        Important: Return ONLY the JSON object. The entire content must be in \${language}.
     `;
+
+    // 템플릿 변수 치환
+    const prompt = promptTemplate
+        .replace(/\${keyword}/g, keyword)
+        .replace(/\${language}/g, language)
+        .replace(/\${duration}/g, config.pipeline?.scriptDuration || "2-minute");
 
     try {
         console.log(`--- Searching and Generating ${language} Script for: ${keyword} ---`);
