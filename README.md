@@ -9,7 +9,7 @@
 -   **최적화된 이미지 생성**: 대본 내용을 시각적 프롬프트로 요약하여 DALL-E 3 고화질 이미지 생성.
 -   **자동 영상 합성**: FFmpeg을 사용하여 이미지와 음성을 1920x1080 해상도로 정교하게 합성 및 결합.
 -   **YouTube 게시**: Google YouTube Data API v3를 통한 자동 동영상 업로드.
--   **워크플로우 자동화**: n8n 및 Windmill을 통한 엔드-투-엔드 파이프라인 구축.
+-   **워크플로우 자동화**: Windmill을 통한 서버 기반 엔드-투-엔드 파이프라인 구축.
 
 ---
 
@@ -37,12 +37,11 @@ GOOGLE_CLIENT_SECRET=your_google_client_secret
 ```
 
 ### 2. 서비스 실행 (Docker)
-Windmill, n8n, Postgres를 포함한 전체 스택을 실행합니다:
+Windmill 및 Postgres를 포함한 전체 스택을 실행합니다:
 ```bash
 docker compose up -d
 ```
 -   **Windmill UI**: [http://localhost:8000](http://localhost:8000)
--   **n8n UI**: [http://localhost:5678](http://localhost:5678)
 
 ---
 
@@ -76,7 +75,6 @@ npm test tests/generate_images.test.js
 -   `tests/`: Jest 기반 유닛 테스트 파일
 -   `videos/scenes/`: 작업 중 생성되는 중간 소스 (MP3, PNG, TXT)
 -   `videos/final_video.mp4`: 최종 완성 영상
--   `extension/`: n8n 트리거용 Chrome 확장 프로그램
 -   `windmill_scripts/`: Windmill 이식용 독립 실행 스크립트
 
 ---

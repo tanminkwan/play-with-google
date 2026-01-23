@@ -44,12 +44,11 @@ YouTube 업로드를 위해 처음에 한 번 인증이 필요합니다:
 ## 3. 서비스 실행 (Running Services)
 
 ### 3.1 Docker를 이용한 전체 스택 실행
-Windmill, n8n, 데이터베이스를 한꺼번에 실행합니다:
+Windmill 및 데이터베이스를 실행합니다:
 ```bash
 docker compose up -d --build
 ```
 - **Windmill**: [http://localhost:8000](http://localhost:8000) (ID: `admin@windmill.dev` / PW: `admin`)
-- **n8n**: [http://localhost:5678](http://localhost:5678)
 
 ---
 
