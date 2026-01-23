@@ -127,11 +127,12 @@ async function generateImagesForScenes() {
     console.log(`Found ${files.length} text files for image generation.`);
 
     const results = [];
+    let lastImagePath = null;
 
     for (const file of files) {
         const filePath = path.join(scenesDir, file);
         const sceneText = fs.readFileSync(filePath, 'utf8');
-        const sceneIndex = file.match(/\d+/)[0];
+        const sceneIndex = parseInt(file.match(/\d+/)[0]);
         const outputPath = path.join(scenesDir, `scene_${sceneIndex}.png`);
         const logoPath = path.join(scenesDir, `scene_${sceneIndex}_logo.png`);
 
@@ -161,9 +162,35 @@ async function generateImagesForScenes() {
             }
 
             results.push(outputPath);
+            lastImagePath = outputPath;
 
         } catch (error) {
             console.error(`Failed to generate image for ${file}:`, error.message);
+
+            if (sceneIndex === 0) {
+                // 0번 scene 실패 시: 두 앵커가 desk에 앉아있는 이미지 시도
+                console.log("Scene 0 failed. Attempting to generate fallback 'Anchors at Desk' image...");
+                try {
+                    const fallbackResponse = await openai.images.generate({
+                        model: config.imageGeneration?.model || "dall-e-3",
+                        prompt: `${config.imageGeneration?.style || ""} Two news anchors sitting at a news desk in a professional studio, looking at the camera.`,
+                        n: 1,
+                        size: config.imageGeneration?.size || "1024x1024",
+                    });
+                    const imageUrl = fallbackResponse.data[0].url;
+                    await module.exports.downloadImage(imageUrl, outputPath);
+                    console.log(`Fallback image generated for Scene ${sceneIndex}`);
+                    results.push(outputPath);
+                    lastImagePath = outputPath;
+                } catch (fallbackError) {
+                    console.error("Critical: Failed to generate fallback image for Scene 0.");
+                }
+            } else if (lastImagePath) {
+                // 그 외 scene 실패 시: 이전 scene 이미지 재사용
+                console.log(`Reusing previous image for Scene ${sceneIndex}: ${lastImagePath}`);
+                fs.copyFileSync(lastImagePath, outputPath);
+                results.push(outputPath);
+            }
         }
     }
 
