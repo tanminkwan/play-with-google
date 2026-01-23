@@ -8,8 +8,8 @@
     "tts": {
         "model": "tts-1",
         "voices": {
-            "Anchor A": "onyx",
-            "Anchor B": "nova"
+            "nameA": "onyx",
+            "nameB": "nova"
         }
     },
     "pipeline": {
@@ -17,8 +17,12 @@
         "defaultModel": "openai",
         "openaiModel": "gpt-4o",
         "geminiModel": "gemini-2.0-flash-lite",
-        "scriptDuration": "2.5-minute",
-        "newsSearchPrompt": "Keyword: \"${keyword}\"\nLanguage: \"${language}\"\n\nTask:\n1. Use your internal knowledge to find the latest news about this keyword.\n2. Create a ${duration} natural dialogue script between two news anchors in ${language}:\n   - Anchor A: Male, enthusiastic voice, asks deep questions.\n   - Anchor B: Female, expert/friendly voice, provides key details.\n3. The tone must be engaging, conversational, and polished (NotebookLM podcast style).\n4. Include natural filler words and reactions appropriate for ${language} speakers.\n\nOutput format: MUST be a valid JSON object only:\n{\n  \"summary\": \"Overall summary of the topic in ${language}\",\n  \"script\": [\n    { \"speaker\": \"Anchor A\", \"text\": \"...\", \"emotion\": \"excited\" },\n    { \"speaker\": \"Anchor B\", \"text\": \"...\", \"emotion\": \"informative\" }\n  ]\n}"
+        "scriptDuration": "2.0-minute",
+        "anchorNames": {
+            "A": "멍청이",
+            "B": "또라이"
+        },
+        "newsSearchPrompt": "Keyword: \"${keyword}\"\nLanguage: \"${language}\"\n\nTask:\n1. Use your internal knowledge to find the latest news about this keyword.\n2. Create a ${duration} natural dialogue script between two news anchors in ${language}:\n   - ${nameA}: Male, enthusiastic voice, asks deep questions.\n   - ${nameB}: Female, expert/friendly voice, provides key details.\n3. Important: The anchors MUST refer to each other by their names (${nameA}, ${nameB}) naturally during the conversation.\n4. The tone must be engaging, conversational, and polished (NotebookLM podcast style).\n5. Include natural filler words and reactions appropriate for ${language} speakers.\n\nOutput format: MUST be a valid JSON object only:\n{\n  \"summary\": \"Overall summary of the topic in ${language}\",\n  \"script\": [\n    { \"speaker\": \"${nameA}\", \"text\": \"...\", \"emotion\": \"excited\" },\n    { \"speaker\": \"${nameB}\", \"text\": \"...\", \"emotion\": \"informative\" }\n  ]\n}"
     },
     "videoSettings": {
         "width": 1920,
@@ -27,7 +31,7 @@
         "outputFileName": "final_video.mp4"
     },
     "youtube": {
-        "privacyStatus": "unlisted",
+        "privacyStatus": "public",
         "defaultCategory": "25"
     },
     "logoOverlay": {

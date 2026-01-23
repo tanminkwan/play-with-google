@@ -25,9 +25,9 @@ async function generateNewsScriptWithOpenAI(keyword, language = "Korean") {
         
         Task:
         1. Use your internal knowledge to find the latest news about this keyword.
-        2. Create a 2-minute natural dialogue script between two news anchors in \${language}:
-           - Anchor A: Male, enthusiastic voice, asks deep questions.
-           - Anchor B: Female, expert/friendly voice, provides key details.
+        2. Create a ${duration} natural dialogue script between two news anchors in \${language}:
+           - \${nameA}: Male, enthusiastic voice, asks deep questions.
+           - \${nameB}: Female, expert/friendly voice, provides key details.
         3. The tone must be engaging, conversational, and polished (NotebookLM podcast style).
         4. Include natural filler words and reactions appropriate for \${language} speakers.
         
@@ -35,17 +35,22 @@ async function generateNewsScriptWithOpenAI(keyword, language = "Korean") {
         {
           "summary": "Overall summary of the topic in \${language}",
           "script": [
-            { "speaker": "Anchor A", "text": "...", "emotion": "excited" },
-            { "speaker": "Anchor B", "text": "...", "emotion": "informative" }
+            { "speaker": "\${nameA}", "text": "...", "emotion": "excited" },
+            { "speaker": "\${nameB}", "text": "...", "emotion": "informative" }
           ]
         }
     `;
 
     // 템플릿 변수 치환
+    const nameA = config.pipeline?.anchorNames?.A || "Anchor A";
+    const nameB = config.pipeline?.anchorNames?.B || "Anchor B";
+
     const prompt = promptTemplate
         .replace(/\${keyword}/g, keyword)
         .replace(/\${language}/g, language)
-        .replace(/\${duration}/g, config.pipeline?.scriptDuration || "2-minute");
+        .replace(/\${duration}/g, config.pipeline?.scriptDuration || "2-minute")
+        .replace(/\${nameA}/g, nameA)
+        .replace(/\${nameB}/g, nameB);
 
     try {
         console.log(`--- Generating ${language} Script for: ${keyword} ---`);

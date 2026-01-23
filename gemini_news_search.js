@@ -29,15 +29,15 @@ async function generateNewsScript(keyword, language = "Korean") {
         Task:
         1. Search for the latest and most relevant news articles about this keyword.
         2. Summarize the findings in \${language}.
-        3. Create a \${duration} dialogue script between two news anchors (Anchor A - male, Anchor B - female) in \${language}.
+        3. Create a \${duration} dialogue script between two news anchors (\${nameA} - male, \${nameB} - female) in \${language}.
         4. The tone should be engaging, informative, and natural (like NotebookLM's Audio Overview in \${language}).
         5. Include natural filler words and reactions appropriate for \${language} speakers.
         6. Return the result in the following JSON format:
         {
           "summary": "General summary of the news in \${language}",
           "script": [
-            { "speaker": "Anchor A", "text": "Dialogue in \${language}...", "emotion": "excited" },
-            { "speaker": "Anchor B", "text": "Dialogue in \${language}...", "emotion": "surprised" }
+            { "speaker": "\${nameA}", "text": "Dialogue in \${language}...", "emotion": "excited" },
+            { "speaker": "\${nameB}", "text": "Dialogue in \${language}...", "emotion": "surprised" }
           ]
         }
         
@@ -45,10 +45,15 @@ async function generateNewsScript(keyword, language = "Korean") {
     `;
 
     // 템플릿 변수 치환
+    const nameA = config.pipeline?.anchorNames?.A || "Anchor A";
+    const nameB = config.pipeline?.anchorNames?.B || "Anchor B";
+
     const prompt = promptTemplate
         .replace(/\${keyword}/g, keyword)
         .replace(/\${language}/g, language)
-        .replace(/\${duration}/g, config.pipeline?.scriptDuration || "2-minute");
+        .replace(/\${duration}/g, config.pipeline?.scriptDuration || "2-minute")
+        .replace(/\${nameA}/g, nameA)
+        .replace(/\${nameB}/g, nameB);
 
     try {
         console.log(`--- Searching and Generating ${language} Script for: ${keyword} ---`);

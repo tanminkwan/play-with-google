@@ -14,6 +14,15 @@ async function runFullPipeline(keyword, language = "Korean", model = "openai") {
     console.log(`\n🚀 Starting Full AI News Pipeline for: "${keyword}" (${language})\n`);
 
     try {
+        // Step 0: 기존 작업 데이터 삭제 (Cleanup)
+        const scenesDir = path.join(__dirname, 'videos', 'scenes');
+        if (fs.existsSync(scenesDir)) {
+            console.log("Step 0: Cleaning up previous scene assets...");
+            const files = fs.readdirSync(scenesDir);
+            for (const file of files) {
+                fs.unlinkSync(path.join(scenesDir, file));
+            }
+        }
         // Step 1: 뉴스 검색 및 대본 생성
         console.log("Step 1: Generating News Script...");
         const scriptData = await generateNewsScriptWithOpenAI(keyword, language);

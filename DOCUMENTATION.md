@@ -104,9 +104,9 @@ FFmpeg이 포함된 커스텀 이미지를 통해 컨테이너 기반 워커에�
 
 ## 5. 중앙 설정 시스템 상세 가이드 (`config.json`)
 
-본 프로젝트의 모든 핵심 로직은 `config.json`을 통해 제어됩니다. 하드코딩을 배제하고 설정파일 수지만으로 파이프라인의 성격을 변경할 수 있습니다.
+본 프로젝트의 모든 핵심 로직은 `config.json`을 통해 제어됩니다. 하드코딩을 배제하고 설정파일 수정만으로 파이프라인의 성격을 변경할 수 있습니다.
 
-### 5.1 `imageGeneration` (이미지 생성 지침)
+### 5.1 `imageGeneration` (DALL-E 이미지 생성)
 *   **`model`**: 사용 모델 (`dall-e-3` 고정 권장).
 *   **`size`**: 이미지 해상도. 유튜브 규격에 맞는 `1792x1024` (가로형) 권장.
 *   **`style`**: 모든 장면에 공통으로 적용될 시각적 스타일 테마. (예: "Flat design", "Oil painting")
@@ -115,25 +115,39 @@ FFmpeg이 포함된 커스텀 이미지를 통해 컨테이너 기반 워커에�
 
 ### 5.2 `tts` (음성 합성 설정)
 *   **`model`**: 사용 모델 (`tts-1` 또는 `tts-1-hd`).
-*   **`voices`**: 각 앵커(`Anchor A`, `Anchor B`)에게 부여할 목소리 ID입니다. OpenAI의 `onyx`, `nova`, `shimmer` 등을 사용할 수 있습니다.
+*   **`voices`**: 각 앵커에게 부여할 목소리 ID입니다. 
+    *   **`nameA` / `nameB`**: `pipeline.anchorNames`에서 정의한 앵커들에게 할당될 기본 목소리입니다.
+    *   OpenAI 추천 조합: `onyx` (남성, 중후함), `nova` (여성, 전문적).
 
 ### 5.3 `pipeline` (AI 비즈니스 로직)
 *   **`defaultLanguage`**: 기본 생성 언어 (`Korean`, `English`).
 *   **`openaiModel` / `geminiModel`**: 각 서비스별로 사용할 모델 버전 명시.
-*   **`scriptDuration`**: **중요!** 영상의 목표 분량을 설정합니다. (예: "1-minute", "2-minute")
-*   **`newsSearchPrompt`**: 뉴스를 수집하여 대본으로 가공할 때의 마스터 프롬프트입니다. 
-    *   **템플릿 변수**: `${keyword}`, `${language}`, `${duration}` 변수가 코드 레벨에서 동적으로 치환됩니다.
+*   **`scriptDuration`**: **영상 목표 분량**. (예: "1-minute", "2.5-minute")
+*   **`anchorNames`**: **앵커들의 실제 이름 정의**.
+    *   `A`: 남성 앵커 이름 (예: "민수")
+    *   `B`: 여성 앵커 이름 (예: "지현")
+*   **`newsSearchPrompt`**: 뉴스를 수집하여 대본으로 가공할 때의 마스터 프롬프트입니다.
+    *   **플레이스홀더**: `${keyword}`, `${language}`, `${duration}`, `${nameA}`, `${nameB}` 변수가 코드 레벨에서 동적으로 치환됩니다.
+    *   AI는 이 이름을 사용하여 대본 내에서 서로를 호칭하게 됩니다.
 
-### 5.4 `videoSettings` (출력 영상 품질)
-*   **`width` / `height`**: 최종 영상 해상도 (기본 1920x1080).
-*   **`outputFileName`**: 생성될 파일명.
+### 5.4 `videoSettings` (FFmpeg 출력 설정)
+*   **`width` / `height`**: 최종 영상 해상도 (기본 1920x1080 FHD).
+*   **`fps`**: 초당 프레임 수 (기본 25fps).
+*   **`outputFileName`**: 최종 생성될 MP4 파일 이름.
 
-### 5.5 `logoOverlay` (하이브리드 로고 합성)
+### 5.5 `youtube` (YouTube 업로드 설정)
+*   **`privacyStatus`**: **영상의 공개 범위 설정**.
+    *   `unlisted` (일부 공개): 링크가 있는 사람만 시청 가능. 자동화 테스트 및 최종 검토용으로 권장.
+    *   `public` (공개): 누구나 검색 가능하며 구독자에게 알림 전송.
+    *   `private` (비공개): 본인만 시청 가능.
+*   **`defaultCategory`**: 유튜브 카테고리 ID (`25`는 뉴스/정치).
+
+### 5.6 `logoOverlay` (하이브리드 로고 합성)
 *   **`enabled`**: 로고 합성 기능 활성화 여부.
 *   **`position`**: 로고 위치 (`top-right`, `top-left` 등).
 *   **`margin`**: 화면 끝에서의 간격(px).
-*   **`width`**: 합성될 로고의 가로 크기(px). 세로는 비율에 맞춰 자동 조절됩니다.
-*   **`fallbackLogos`**: 도메인 추출 실패 시를 대비한 수동 브랜드 로고 매핑 리스트입니다. 기업명에 해당 키워드가 포함되면 정의된 URL의 이미지를 우선 사용합니다.
+*   **`width`**: 합성될 로고의 가로 크기(px).
+*   **`fallbackLogos`**: AI가 도메인을 찾지 못했을 때 사용할 수동 브랜드 로고 매핑 리스트입니다.
 
 ---
 

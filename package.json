@@ -12,5 +12,8 @@
   "devDependencies": {
     "@marp-team/marp-cli": "^4.2.3",
     "jest": "^30.2.0"
+  },
+  "imports": {
+    "#root/*": "./*"
   }
 }

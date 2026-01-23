@@ -40,10 +40,16 @@ async function generateBatchTTS(providedScriptData = null) {
 
     console.log(`Processing ${scenes.length} dialogue lines...`);
 
-    // 3. 목소리 매핑
-    const voiceMap = {
-        "Anchor A": "onyx", // 남성
-        "Anchor B": "nova"   // 여성
+    // 3. 목소리 설정 가져오기
+    const nameA = config.pipeline?.anchorNames?.A || "Anchor A";
+    const nameB = config.pipeline?.anchorNames?.B || "Anchor B";
+
+    // Config에서 직접 매핑된 게 있거나, 별칭(nameA/nameB)으로 정의된 것을 사용
+    const getVoice = (speaker) => {
+        if (config.tts?.voices?.[speaker]) return config.tts.voices[speaker];
+        if (speaker === nameA) return config.tts?.voices?.nameA || "onyx";
+        if (speaker === nameB) return config.tts?.voices?.nameB || "nova";
+        return "alloy"; // Default
     };
 
     const results = [];
@@ -52,7 +58,7 @@ async function generateBatchTTS(providedScriptData = null) {
     for (let i = 0; i < scenes.length; i++) {
         const item = scenes[i];
         const speaker = item.speaker;
-        const voice = config.tts?.voices?.[speaker] || (speaker === "Anchor A" ? "onyx" : "nova"); // Fallback to hardcoded if not in config
+        const voice = getVoice(speaker);
         const outputPath = path.join(scenesDir, `scene_${i}.mp3`);
 
         try {
