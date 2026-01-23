@@ -3,6 +3,10 @@ const fs = require("fs");
 const path = require("path");
 require('dotenv').config();
 
+// 설정 파일 로드
+const configPath = path.join(__dirname, 'config.json');
+const config = fs.existsSync(configPath) ? JSON.parse(fs.readFileSync(configPath, 'utf8')) : {};
+
 /**
  * 대본(JSON)을 읽어 장면별 개별 음성 파일(MP3) 생성
  */
@@ -47,19 +51,20 @@ async function generateBatchTTS(providedScriptData = null) {
     // 4. 각 라인별 음성 생성
     for (let i = 0; i < scenes.length; i++) {
         const item = scenes[i];
-        const voice = voiceMap[item.speaker] || "alloy";
+        const speaker = item.speaker;
+        const voice = config.tts?.voices?.[speaker] || (speaker === "Anchor A" ? "onyx" : "nova"); // Fallback to hardcoded if not in config
         const outputPath = path.join(scenesDir, `scene_${i}.mp3`);
 
         try {
-            console.log(`[${i + 1}/${scenes.length}] Generating speech for ${item.speaker} (${voice})...`);
+            console.log(`[${i + 1}/${scenes.length}] Generating speech for ${speaker} (${voice})...`);
 
-            const mp3 = await openai.audio.speech.create({
-                model: "tts-1",
+            const response = await openai.audio.speech.create({
+                model: config.tts?.model || "tts-1",
                 voice: voice,
                 input: item.text,
             });
 
-            const buffer = Buffer.from(await mp3.arrayBuffer());
+            const buffer = Buffer.from(await response.arrayBuffer());
             await fs.promises.writeFile(outputPath, buffer);
 
             // 각 장면의 텍스트도 매칭해서 저장

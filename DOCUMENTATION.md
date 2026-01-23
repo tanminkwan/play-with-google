@@ -93,7 +93,23 @@ FFmpeg이 포함된 커스텀 이미지를 통해 컨테이너 기반 워커에�
 
 ---
 
-## 5. 트러블슈팅 기록
+## 5. 설정 시스템 (`config.json`)
+
+하드코딩을 최소화하고 유연한 운영을 위해 중앙 집중식 설정 파일을 사용합니다.
+
+### 5.1 주요 설정 항목
+*   **imageGeneration**:
+    *   `model`: DALL-E 모델 버전 (`dall-e-3`)
+    *   `size`: 이미지 해상도 (가로형 `1792x1024` 권장)
+    *   `style`: 모든 이미지에 공통 적용될 예술적 스타일
+    *   `optimizationPrompt`: 대본을 시각적 묘사로 변환할 때의 AI 지침
+*   **tts**: 사용할 모델 및 앵커별 목소리(`onyx`, `nova` 등) 지정
+*   **videoSettings**: 출력 영상의 해상도 및 파일명 설정
+*   **pipeline**: 뉴스 검색 시 사용되는 모델 및 시스템 프롬프트 템플릿
+
+---
+
+## 6. 트러블슈팅 기록
 
 ### FFmpeg 에러: "Too many inputs specified for the scale filter"
 - **해결**: 필터 체인에서 `scaleFilters`와 `concatInputs` 문자열을 명확히 분리하여 구문 오류를 해결했습니다.

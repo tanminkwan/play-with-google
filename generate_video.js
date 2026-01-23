@@ -2,6 +2,10 @@ const fs = require('fs');
 const path = require('path');
 const { spawn, execSync } = require('child_process');
 
+// 설정 파일 로드
+const configPath = path.join(__dirname, 'config.json');
+const config = fs.existsSync(configPath) ? JSON.parse(fs.readFileSync(configPath, 'utf8')) : {};
+
 /**
  * ffprobe를 사용하여 오디오 파일의 길이를 초 단위로 가져오는 함수
  */
@@ -24,7 +28,8 @@ async function generateFinalVideo() {
 
     const scenesDir = path.join(__dirname, 'videos', 'scenes');
     const outputDir = path.join(__dirname, 'videos');
-    const outputPath = path.join(outputDir, 'final_video.mp4');
+    const outputName = config.videoSettings?.outputFileName || 'final_video.mp4';
+    const outputPath = path.join(outputDir, outputName);
 
     if (!fs.existsSync(scenesDir)) {
         throw new Error(`Scenes directory not found: ${scenesDir}`);
@@ -48,23 +53,32 @@ async function generateFinalVideo() {
     let scaleFilters = "";
     let concatInputs = "";
 
-    sceneIndices.forEach((idx, i) => {
-        const audioPath = path.join(scenesDir, `scene_${idx}.mp3`);
-        const imagePath = path.join(scenesDir, `scene_${idx}.png`);
+    const width = config.videoSettings?.width || 1920;
+    const height = config.videoSettings?.height || 1080;
 
-        if (fs.existsSync(audioPath) && fs.existsSync(imagePath)) {
-            const duration = getAudioDuration(audioPath);
+    for (const [i, index] of sceneIndices.entries()) {
+        const img = path.join(scenesDir, `scene_${index}.png`);
+        const aud = path.join(scenesDir, `scene_${index}.mp3`);
+
+        if (fs.existsSync(aud) && fs.existsSync(img)) { // Ensure files exist before processing
+            const duration = getAudioDuration(aud);
 
             // 입력 파일 추가 (이미지를 오디오 길이에 맞춤)
-            args.push('-loop', '1', '-t', duration.toString(), '-i', imagePath);
-            args.push('-i', audioPath);
+            args.push('-loop', '1', '-t', duration.toString(), '-i', img);
+            args.push('-i', aud);
 
             // 개별 장면 스케일링 필터
-            scaleFilters += `[${i * 2}:v]scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2[v${i}];`;
+            scaleFilters += `[${i * 2}:v]scale=${width}:${height}:force_original_aspect_ratio=decrease,pad=${width}:${height}:(ow-iw)/2:(oh-ih)/2,setsar=1[v${i}];`;
             // concat 입력으로 추가
             concatInputs += `[v${i}][${i * 2 + 1}:a]`;
+        } else {
+            console.warn(`Skipping scene ${index}: Missing audio (${aud}) or image (${img}) file.`);
         }
-    });
+    }
+
+    if (sceneIndices.length === 0) { // Re-check if any scenes were actually processed after filtering
+        throw new Error("No valid scenes found to process after checking file existence.");
+    }
 
     const filterComplex = `${scaleFilters}${concatInputs}concat=n=${sceneIndices.length}:v=1:a=1[v][a]`;
 

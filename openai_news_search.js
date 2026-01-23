@@ -1,6 +1,11 @@
 const { OpenAI } = require("openai");
 require('dotenv').config();
 const fs = require('fs');
+const path = require('path');
+
+// 설정 파일 로드
+const configPath = path.join(__dirname, 'config.json');
+const config = fs.existsSync(configPath) ? JSON.parse(fs.readFileSync(configPath, 'utf8')) : {};
 
 /**
  * OpenAI를 사용하여 뉴스를 검색하고 대화형 대본을 생성하는 모듈
@@ -13,37 +18,41 @@ async function generateNewsScriptWithOpenAI(keyword, language = "Korean") {
 
     const openai = new OpenAI({ apiKey });
 
-    const prompt = `
-        Keyword: "${keyword}"
-        Language: "${language}"
+    // 설정 파일에서 프롬프트 템플릿 가져오기
+    let promptTemplate = config.pipeline?.newsSearchPrompt || `
+        Keyword: "\${keyword}"
+        Language: "\${language}"
         
         Task:
         1. Use your internal knowledge to find the latest news about this keyword.
-        2. Create a 2-minute natural dialogue script between two news anchors in ${language}:
+        2. Create a 2-minute natural dialogue script between two news anchors in \${language}:
            - Anchor A: Male, enthusiastic voice, asks deep questions.
            - Anchor B: Female, expert/friendly voice, provides key details.
         3. The tone must be engaging, conversational, and polished (NotebookLM podcast style).
-        4. Include natural filler words and reactions appropriate for ${language} speakers (e.g., in Korean: "아~", "그렇군요", "정말요?").
+        4. Include natural filler words and reactions appropriate for \${language} speakers.
         
         Output format: MUST be a valid JSON object only:
         {
-          "summary": "Overall summary of the topic in ${language}",
+          "summary": "Overall summary of the topic in \${language}",
           "script": [
-            { "speaker": "Anchor A", "text": "Text in ${language}...", "emotion": "excited" },
-            { "speaker": "Anchor B", "text": "Text in ${language}...", "emotion": "informative" }
+            { "speaker": "Anchor A", "text": "...", "emotion": "excited" },
+            { "speaker": "Anchor B", "text": "...", "emotion": "informative" }
           ]
         }
-        
-        Important: Script must be entirely in ${language}.
     `;
+
+    // 템플릿 변수 치환
+    const prompt = promptTemplate
+        .replace(/\${keyword}/g, keyword)
+        .replace(/\${language}/g, language);
 
     try {
         console.log(`--- Generating ${language} Script for: ${keyword} ---`);
 
         const response = await openai.chat.completions.create({
-            model: "gpt-4o",
+            model: config.pipeline?.openaiModel || "gpt-4o",
             messages: [
-                { role: "system", content: `You are a professional news scriptwriter. You write scripts in the requested language: ${language}.` },
+                { role: "system", content: `You are a professional journalist. Respond ONLY in valid JSON.` },
                 { role: "user", content: prompt }
             ],
             response_format: { type: "json_object" }

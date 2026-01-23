@@ -27,13 +27,21 @@
 
 ## 🛠 설치 및 설정
 
-### 1. 환경 변수 설정
-`.env` 파일을 루트 디렉토리에 생성하고 아래 키드을 설정합니다:
-```env
-OPENAI_API_KEY=your_openai_key
-GEMINI_API_KEY=your_gemini_key
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
+```
+
+### 2. 파이프라인 설정 (`config.json`)
+화면 비율, 이미지 스타일, AI 프롬프트 등을 `config.json`에서 자유롭게 커스터마이징할 수 있습니다:
+```json
+{
+  "imageGeneration": {
+    "size": "1792x1024",
+    "style": "Simplified cartoon style..."
+  },
+  "videoSettings": {
+    "width": 1920,
+    "height": 1080
+  }
+}
 ```
 
 ### 2. 서비스 실행 (Docker)

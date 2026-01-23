@@ -4,6 +4,10 @@ const path = require("path");
 const https = require("https");
 require('dotenv').config();
 
+// 설정 파일 로드
+const configPath = path.join(__dirname, 'config.json');
+const config = fs.existsSync(configPath) ? JSON.parse(fs.readFileSync(configPath, 'utf8')) : {};
+
 /**
  * URL에서 이미지를 다운로드하여 저장하는 유틸리티
  */
@@ -36,11 +40,11 @@ async function optimizePromptForImage(openai, sceneText) {
             messages: [
                 {
                     role: "system",
-                    content: "You are a professional prompt engineer for DALL-E 3. Your task is to summarize a news script dialogue into a single, highly detailed visual description for a professional news broadcast scene. Focus on the core subject, environment, and atmosphere. Do not include text or dialogue in the image description. Output ONLY the optimized English prompt."
+                    content: config.imageGeneration?.optimizationPrompt || "You are a professional prompt engineer for DALL-E 3. Your task is to summarize a news script dialogue into a single visual description for a professional news broadcast scene. Focus on the core subject, environment, and atmosphere. Do not include text or dialogue in the image description. Output ONLY the optimized English prompt."
                 },
                 {
                     role: "user",
-                    content: `Analyze this news scene text and create a professional visual prompt: "${sceneText}"`
+                    content: `Analyze this news scene text and create a visual description: "${sceneText}"`
                 }
             ],
         });
@@ -96,12 +100,12 @@ async function generateImagesForScenes() {
             const optimizedPrompt = await optimizePromptForImage(openai, sceneText);
             console.log(`Optimized Prompt: ${optimizedPrompt.substring(0, 100)}...`);
 
-            // 2-2. DALL-E 3 호출
+            // 2-2. DALL-E 호출
             const response = await openai.images.generate({
-                model: "dall-e-3",
-                prompt: `A high-quality, photorealistic professional news broadcast scene. ${optimizedPrompt}`,
+                model: config.imageGeneration?.model || "dall-e-3",
+                prompt: `${config.imageGeneration?.style || "A high-quality, photorealistic professional news broadcast scene."} ${optimizedPrompt}`,
                 n: 1,
-                size: "1024x1024",
+                size: config.imageGeneration?.size || "1024x1024",
             });
 
             const imageUrl = response.data[0].url;

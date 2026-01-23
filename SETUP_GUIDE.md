@@ -33,7 +33,16 @@ GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
 ```
 
-### 2.3 YouTube API 인증
+### 2.3 파이프라인 커스터마이징 (`config.json`)
+`config.json` 파일의 값을 수정하여 영상의 분위기와 설정을 변경할 수 있습니다.
+
+*   **이미지 스타일 변경**: `imageGeneration.style` 값을 수정 (예: "Watercolor painting style", "Cyberpunk digital art")
+*   **이미지 집중도 조절**: `optimizationPrompt`를 수정하여 스튜디오 배경 유무 등을 제어
+*   **영상 해상도**: `videoSettings`에서 가로/세로 크기 조절
+
+---
+
+## 2.4 YouTube API 인증
 YouTube 업로드를 위해 처음에 한 번 인증이 필요합니다:
 1. `node youtube_uploader.js`를 실행합니다.
 2. 터미널에 표시된 URL에 접속하여 구글 로그인을 진행합니다.
