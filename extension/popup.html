@@ -1,27 +1,58 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="popup.css">
 </head>
+
 <body>
-    <div class="container">
-        <h1>Antigravity Uploader</h1>
-        <div class="field">
-            <label for="title">Video Title</label>
-            <input type="text" id="title" placeholder="Enter video title">
-        </div>
-        <div class="field">
-            <label for="description">Description</label>
-            <textarea id="description" placeholder="Enter description"></textarea>
-        </div>
-        <div class="field">
-            <label for="webhook">n8n Webhook URL</label>
-            <input type="text" id="webhook" placeholder="http://localhost:5678/rest/webhooks/...">
-        </div>
-        <button id="uploadBtn">Upload to YouTube</button>
-        <div id="status"></div>
+    <div class="glass-container">
+        <header>
+            <div class="logo">
+                <span class="icon">🚀</span>
+                <h1>Uploader Pro</h1>
+            </div>
+            <p class="subtitle">YouTube Automation Hub</p>
+        </header>
+
+        <main class="content">
+            <div class="input-group">
+                <label for="title">Video Title</label>
+                <div class="input-wrapper">
+                    <input type="text" id="title" placeholder="What's the title?">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label for="description">Description</label>
+                <div class="input-wrapper">
+                    <textarea id="description" placeholder="Add some context..."></textarea>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label for="webhook">n8n Webhook</label>
+                <div class="input-wrapper">
+                    <input type="text" id="webhook" placeholder="https://...">
+                </div>
+            </div>
+
+            <button id="uploadBtn">
+                <span class="btn-text">Submit to n8n</span>
+                <span class="btn-loader"></span>
+            </button>
+        </main>
+
+        <footer>
+            <div id="status">Ready to automate</div>
+        </footer>
     </div>
     <script src="popup.js"></script>
 </body>
+
 </html>

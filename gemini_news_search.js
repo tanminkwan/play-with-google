@@ -1,0 +1,76 @@
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+require('dotenv').config();
+const fs = require('fs');
+
+/**
+ * Gemini를 사용하여 뉴스를 검색하고 대화형 대본을 생성하는 모듈
+ */
+async function generateNewsScript(keyword, language = "Korean") {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+        throw new Error("GEMINI_API_KEY not found in .env file.");
+    }
+
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({
+        model: "models/gemini-2.0-flash-lite",
+    });
+
+    const prompt = `
+        Keyword: "${keyword}"
+        Language: "${language}"
+        
+        Task:
+        1. Search for the latest and most relevant news articles about this keyword.
+        2. Summarize the findings in ${language}.
+        3. Create a 2-minute dialogue script between two news anchors (Anchor A - male, Anchor B - female) in ${language}.
+        4. The tone should be engaging, informative, and natural (like NotebookLM's Audio Overview in ${language}).
+        5. Include natural filler words and reactions appropriate for ${language} speakers.
+        6. Return the result in the following JSON format:
+        {
+          "summary": "General summary of the news in ${language}",
+          "script": [
+            { "speaker": "Anchor A", "text": "Dialogue in ${language}...", "emotion": "excited" },
+            { "speaker": "Anchor B", "text": "Dialogue in ${language}...", "emotion": "surprised" }
+          ]
+        }
+        
+        Important: Return ONLY the JSON object. The entire content must be in ${language}.
+    `;
+
+    try {
+        console.log(`--- Searching and Generating ${language} Script for: ${keyword} ---`);
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        let text = response.text();
+
+        // JSON 추출 (마크다운 코드 블록 제거 등)
+        text = text.replace(/```json/g, "").replace(/```/g, "").trim();
+        const scriptData = JSON.parse(text);
+
+        console.log(`--- Success! ${language} Script Generated ---`);
+        return scriptData;
+    } catch (error) {
+        console.error(`--- Gemini ${language} Search Failed ---`);
+        throw error;
+    }
+}
+
+// 모듈 내보내기
+module.exports = { generateNewsScript };
+
+// 테스트 실행 (main 모듈일 때만 실행)
+if (require.main === module) {
+    (async () => {
+        const testKeyword = process.argv[2] || "Apple Vision Pro";
+        const testLanguage = process.argv[3] || "Korean";
+        try {
+            const scriptData = await generateNewsScript(testKeyword, testLanguage);
+            fs.writeFileSync('news_script.json', JSON.stringify(scriptData, null, 2));
+            console.log("Script saved to news_script.json");
+        } catch (err) {
+            console.error(err.message);
+            process.exit(1);
+        }
+    })();
+}

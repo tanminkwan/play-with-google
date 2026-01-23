@@ -53,7 +53,7 @@
     },
     {
       "parameters": {
-        "sendTo": "USER_EMAIL_HERE",
+        "sendTo": "ENTER_YOUR_EMAIL_HERE",
         "subject": "YouTube Upload Successful",
         "message": "Video has been uploaded.\n\nTitle: {{ $json.snippet.title }}\nURL: https://www.youtube.com/watch?v={{ $json.id }}",
         "appendAttributions": false

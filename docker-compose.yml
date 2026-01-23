@@ -1,6 +1,7 @@
 version: '3.8'
 
 services:
+  # --- n8n Service ---
   n8n:
     image: n8nio/n8n:latest
     restart: always
@@ -12,9 +13,56 @@ services:
       - N8N_PROTOCOL=http
       - NODE_ENV=production
       - WEBHOOK_URL=http://localhost:5678/
+      - N8N_RESTRICT_FILE_ACCESS_TO=/home/node/.n8n-files;/home/node/videos
     volumes:
       - n8n_data:/home/node/.n8n
       - ./videos:/home/node/videos
 
+  # --- Windmill Stack ---
+  windmill-db:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_DB: windmill
+      POSTGRES_PASSWORD: windmillpassword # PROD: Use secrets/env
+    volumes:
+      - windmill_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d windmill" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  windmill-server:
+    image: ghcr.io/windmill-labs/windmill:latest
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgres://postgres:windmillpassword@windmill-db:5432/windmill?sslmode=disable
+      - MODE=server
+      - BASE_URL=http://localhost:8000
+    depends_on:
+      windmill-db:
+        condition: service_healthy
+
+  windmill-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.windmill_worker
+    restart: always
+    environment:
+      - DATABASE_URL=postgres://postgres:windmillpassword@windmill-db:5432/windmill?sslmode=disable
+      - MODE=worker
+      - WORKER_GROUP=default
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./videos:/home/node/videos
+      - .:/home/node/app
+    depends_on:
+      windmill-db:
+        condition: service_healthy
+
 volumes:
   n8n_data:
+  windmill_db_data:

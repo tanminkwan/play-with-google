@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Environment & Credentials
+.env
+token.json
+
+# Generated Content & Temp Files
+news_script.json
+videos/**/*.mp3
+videos/**/*.png
+videos/**/*.txt
+videos/**/*.mp4
+!videos/**/.gitkeep
+
+# OS Files
+.DS_Store
+Thumbs.db

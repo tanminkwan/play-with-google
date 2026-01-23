@@ -1,49 +1,85 @@
-# n8n YouTube & Gmail Automation
+# 📺 AI News Video Automation (TDD & Windmill)
 
-This project provides an automated way to upload `.mp4` video files to YouTube and send a confirmation email via Gmail using [n8n](https://n8n.io/).
+본 프로젝트는 최신 뉴스 키워드를 바탕으로 대본 생성, 음성 합성(TTS), 이미지 생성(DALL-E), 영상 편집(FFmpeg), 그리고 YouTube 업로드까지의 전 과정을 자동화하는 파이프라인입니다. **TDD(Test-Driven Development)** 기반으로 설계되어 견고한 모듈 체계를 갖추고 있습니다.
 
-## Prerequisite
+## 🚀 주요 기능
 
-- Docker and Docker Compose installed.
-- Google Cloud Platform account with YouTube Data API v3 and Gmail API enabled.
+-   **뉴스 검색 및 대본 생성**: OpenAI(GPT-4o) 또는 Google Gemini를 사용하여 대화형 뉴스 스크립트 생성 (한국어/영어 지원).
+-   **배치 음성 생성 (TTS)**: OpenAI TTS API를 사용하여 앵커별 페르소나에 맞는 음성 파일 생성.
+-   **최적화된 이미지 생성**: 대본 내용을 시각적 프롬프트로 요약하여 DALL-E 3 고화질 이미지 생성.
+-   **자동 영상 합성**: FFmpeg을 사용하여 이미지와 음성을 1920x1080 해상도로 정교하게 합성 및 결합.
+-   **YouTube 게시**: Google YouTube Data API v3를 통한 자동 동영상 업로드.
+-   **워크플로우 자동화**: n8n 및 Windmill을 통한 엔드-투-엔드 파이프라인 구축.
 
-## Setup Instructions
+---
 
-### 1. Start n8n
-```bash
-docker-compose up -d
+## 🏗 아키텍처 및 파이프라인
+
+전체 프로세스는 다음 5단계의 모듈로 구성됩니다:
+
+1.  **News Search** (`openai_news_search.js` / `gemini_news_search.js`)
+2.  **Voice Generation** (`generate_batch_tts.js`)
+3.  **Image Generation** (`generate_images.js`)
+4.  **Video Assembly** (`generate_video.js`)
+5.  **YouTube Upload** (`youtube_uploader.js`)
+
+---
+
+## 🛠 설치 및 설정
+
+### 1. 환경 변수 설정
+`.env` 파일을 루트 디렉토리에 생성하고 아래 키드을 설정합니다:
+```env
+OPENAI_API_KEY=your_openai_key
+GEMINI_API_KEY=your_gemini_key
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
 ```
-Access n8n at `http://localhost:5678`.
 
-### 2. Configure Google Cloud Credentials
-You need OAuth2 credentials for both YouTube and Gmail.
-- Go to [Google Cloud Console](https://console.cloud.google.com/).
-- Create a project.
-- Enable `YouTube Data API v3` and `Gmail API`.
-- Configure the OAuth Consent Screen (External/Internal).
-- Create OAuth 2.0 Client IDs (Web application).
-- Add `http://localhost:5678/rest/oauth2-credential/callback` as an Authorized Redirect URI.
+### 2. 서비스 실행 (Docker)
+Windmill, n8n, Postgres를 포함한 전체 스택을 실행합니다:
+```bash
+docker compose up -d
+```
+-   **Windmill UI**: [http://localhost:8000](http://localhost:8000)
+-   **n8n UI**: [http://localhost:5678](http://localhost:5678)
 
-### 3. Import Workflow
-- Open n8n (`http://localhost:5678`).
-- Go to **Workflows** -> **Import from File**.
-- Select `youtube_upload_workflow.json`.
+---
 
-### 4. Setup Extension
-- Open Chrome and go to `chrome://extensions/`.
-- Enable **Developer mode**.
-- Click **Load unpacked** and select the `extension/` folder in this repository.
-- Pin the extension and click the icon.
-- Enter the **Test Webhook URL** from your n8n Webhook node.
+## 🧪 테스트 (TDD)
 
-### 5. Setup Credentials in n8n
-... (rest of instructions)
+본 프로젝트는 모든 핵심 로직에 대해 유닛 테스트를 포함하고 있습니다. Jest를 사용하여 API 모킹 및 로직 검증을 수행합니다.
 
-### 5. Run the Automation
-- Place your `.mp4` files in the `videos/` folder within this repository.
-- Run the workflow manually or set a **Schedule Trigger**.
+### 테스트 실행
+```bash
+# 전체 테스트 실행
+npm test
 
-## File Structure
-- `docker-compose.yml`: Docker configuration for n8n.
-- `youtube_upload_workflow.json`: The automation workflow.
-- `videos/`: Place your video files here.
+# 특정 모듈 테스트 실행 (예: 이미지 생성)
+npm test tests/generate_images.test.js
+```
+
+---
+
+## ⚙️ Windmill 파이프라인 구축
+
+`./windmill_scripts/` 디렉토리에 있는 스크립트들을 Windmill UI에 등록하여 Flow를 구성할 수 있습니다.
+
+1.  **Script 등록**: 각 `.js` 파일 내용을 Windmill 스크립트로 복사.
+2.  **Flow 연결**: `News -> TTS -> Image -> Assembly -> Upload` 순으로 단계 구성.
+3.  **병렬화**: TTS와 Image 생성 단계를 Parallel 노드로 묶어 실행 속도 최적화.
+
+---
+
+## 📂 파일 구조
+
+-   `tests/`: Jest 기반 유닛 테스트 파일
+-   `videos/scenes/`: 작업 중 생성되는 중간 소스 (MP3, PNG, TXT)
+-   `videos/final_video.mp4`: 최종 완성 영상
+-   `extension/`: n8n 트리거용 Chrome 확장 프로그램
+-   `windmill_scripts/`: Windmill 이식용 독립 실행 스크립트
+
+---
+
+## 📄 라이선스
+MIT License
