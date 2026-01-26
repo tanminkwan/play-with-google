@@ -31,6 +31,10 @@ GEMINI_API_KEY=your_gemini_api_key
 # Google OAuth (YouTube Upload)
 GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
+
+# Gmail SMTP (Notification)
+GMAIL_USER=your_email@gmail.com
+GMAIL_APP_PASSWORD=xxxx yyyy zzzz wwww  # (16-digit Google App Password)
 ```
 
 ### 2.3 파이프라인 커스터마이징 (`config.json`)
@@ -47,6 +51,18 @@ YouTube 업로드를 위해 처음에 한 번 인증이 필요합니다:
 1. `node youtube_uploader.js`를 실행합니다.
 2. 터미널에 표시된 URL에 접속하여 구글 로그인을 진행합니다.
 3. 인증 코드(Code)를 터미널에 입력하면 `token.json`이 생성됩니다.
+
+---
+
+## 2.5 Gmail SMTP 및 앱 비밀번호 설정
+이메일 알림 보낼 때 사용할 Gmail 계정을 설정합니다:
+
+1.  **2단계 인증 활성화**: 해당 Gmail 계정의 [보안 설정](https://myaccount.google.com/security)에서 **2단계 인증(2-Step Verification)**을 켭니다.
+2.  **앱 비밀번호(App Password) 생성**:
+    - 검색창에 "App passwords"라고 입력하거나 [이 링크](https://myaccount.google.com/apppasswords)로 접속합니다.
+    - **App name**에 "AI News Bot" 등을 입력하고 **Create**를 누릅니다.
+    - 화면에 나타나는 **16자리 비밀번호**를 복사하여 `.env`의 `GMAIL_APP_PASSWORD`에 붙여넣습니다 (공백은 무시해도 됨).
+3.  **수신자 등록**: `config.json`의 `notification.emails` 배열에 알림을 받을 이메일 주소들을 추가합니다.
 
 ---
 
@@ -109,7 +125,7 @@ node pipeline.js "전기차 화재 문제" "Korean"
 2. **스크립트 등록**: `windmill_scripts/` 폴더 내의 5개 파일(1~5번)을 각각 등록합니다.
    - 모든 스크립트는 내부적으로 `path_config.js`를 임포트하여 앱 루트 경로를 참조합니다.
 3. **Flow 생성**: 등록한 스크립트들을 순서대로 배치하여 워크플로우를 만듭니다.
-   - `Step 1 (Script)` -> `Step 2 (TTS)` & `Step 3 (Images)` 병렬 실행 -> `Step 4 (Video)` -> `Step 5 (Upload)`
+   - `Step 1 (Script)` -> `Step 2 (TTS)` & `Step 3 (Images)` 병렬 실행 -> `Step 4 (Video)` -> `Step 5 (Upload)` -> `Step 6 (Email)`
 4. **실행**: Keyword와 Language를 입력하고 **Run**을 클릭하면 모든 과정이 자동으로 진행됩니다.
 
 ---

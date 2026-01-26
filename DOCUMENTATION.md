@@ -41,6 +41,7 @@ graph TD
         MasterVideo --> YTUpload[5. YouTube Uploader<br/>YouTube Data API v3]
         JSONData -->|Metadata| YTUpload
         YTUpload --> FinalResult((YouTube URL Published))
+        FinalResult --> EmailNotif[6. Email Notifier<br/>Gmail SMTP / Nodemailer]
     end
 
     %% Styling
@@ -78,6 +79,11 @@ graph TD
 ### 2.5 YouTube 자동 게시
 *   **사용 서비스**: Google YouTube Data API v3
 *   **동작 원리**: OAuth2 인증을 통해 영상을 업로드합니다. 대본의 요약본을 본문으로 사용하며, 초기에는 `unlisted` 상태로 게시하여 안정성을 확보합니다.
+
+### 2.6 이메일 알림 발송 (Email Notification)
+*   **사용 서비스**: Gmail SMTP (Nodemailer)
+*   **동작 원리**: 파이프라인의 마지막 단계로, 업로드된 영상의 제목, 링크, 요약 내용을 포함한 HTML 메일을 발송합니다.
+*   **커스터마이징**: `config.json`을 통해 여러 명의 수신자(`emails` 배열)를 지정할 수 있으며, 이메일 템플릿의 문구와 발신자 이름 등을 설정 파일에서 관리합니다.
 
 ---
 

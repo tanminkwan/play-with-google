@@ -3,6 +3,7 @@ const { generateBatchTTS } = require('./generate_batch_tts');
 const { generateImagesForScenes } = require('./generate_images');
 const { generateFinalVideo } = require('./generate_video');
 const { uploadToYouTube } = require('./youtube_uploader');
+const { sendUploadNotification } = require('./email_notifier');
 const fs = require('fs');
 const path = require('path');
 require('dotenv').config();
@@ -51,6 +52,15 @@ async function runFullPipeline(keyword, language = "Korean", model = "openai") {
 
         console.log("\n✅ Pipeline Completed Successfully!");
         console.log(`📺 Watch here: https://www.youtube.com/watch?v=${uploadResult.id}`);
+
+        // Step 6: 이메일 알림 발송
+        console.log("\nStep 6: Sending Email Notification...");
+        await sendUploadNotification({
+            title: videoTitle,
+            videoId: uploadResult.id,
+            summary: scriptData.summary
+        });
+        console.log("📨 Email notification sent!");
 
     } catch (error) {
         console.error("\n❌ Pipeline Failed at some point:");

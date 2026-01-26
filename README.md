@@ -9,6 +9,7 @@
 -   **최적화된 이미지 생성**: 대본 내용을 시각적 프롬프트로 요약하여 DALL-E 3 이미지 생성. 기업명, 브랜드 등 고유명사를 자동으로 탐지하여 이미지의 핵심 요소로 반영하며, 필요 시 로고를 영상 위에 직접 합성(Logo Overlay)하는 하이브리드 방식 지원.
 -   **자동 영상 합성**: FFmpeg을 사용하여 이미지와 음성을 1920x1080 해상도로 정교하게 합성 및 결합.
 -   **YouTube 게시**: Google YouTube Data API v3를 통한 자동 동영상 업로드.
+-   **이메일 알림**: 영상 업로드 완료 시 등록된 여러 명의 수신자에게 깔끔한 HTML 형식의 리포트 발송 (Gmail SMTP 연동).
 -   **워크플로우 자동화**: Windmill을 통한 서버 기반 엔드-투-엔드 파이프라인 구축.
 
 ---
@@ -22,6 +23,7 @@
 3.  **Image Generation** (`generate_images.js`)
 4.  **Video Assembly** (`generate_video.js`)
 5.  **YouTube Upload** (`youtube_uploader.js`)
+6.  **Email Notification** (`email_notifier.js`)
 
 ---
 

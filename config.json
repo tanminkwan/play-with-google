@@ -44,5 +44,22 @@
             "Apple": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Apple_logo_black.svg/800px-Apple_logo_black.svg.png",
             "Google": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Google_2015_logo.svg/1200px-Google_2015_logo.svg.png"
         }
+    },
+    "notification": {
+        "emails": [
+            "tanminkwan@gmail.com",
+            "tiffanie.kim@samsung.com",
+            "juho.hong@samsung.com"
+        ],
+        "smtpService": "gmail",
+        "senderName": "AI News Automator",
+        "subjectPrefix": "🎬 [업로드 완료]",
+        "template": {
+            "title": "📺 YouTube 업로드 완료",
+            "labelTitle": "제목",
+            "labelLink": "영상 링크",
+            "labelSummary": "내용 요약",
+            "footer": "이 메일은 AI 자동화 시스템에 의해 발송되었습니다."
+        }
     }
 }
