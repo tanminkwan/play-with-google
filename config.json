@@ -61,5 +61,27 @@
             "labelSummary": "내용 요약",
             "footer": "이 메일은 AI 자동화 시스템에 의해 발송되었습니다."
         }
+    },
+    "newsScraper": {
+        "maxItems": 5,
+        "searchUrl": "https://search.naver.com/search.naver?where=news&query=${keyword}&sort=0",
+        "rankingUrl": "https://news.naver.com/main/ranking/popularDay.naver",
+        "articleSelectors": [
+            "#newsct_article",
+            "#articleBodyContents",
+            "#news_body_area",
+            ".article_body"
+        ],
+        "junkSelectors": [
+            ".end_ad",
+            ".box_con",
+            ".c_footer",
+            ".sponsor",
+            ".view_video",
+            ".nbd_d_if",
+            ".article_info"
+        ],
+        "timeout": 10000,
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
     }
 }

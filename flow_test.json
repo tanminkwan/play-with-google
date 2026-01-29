@@ -1,0 +1,12 @@
+{
+    "modules": [
+        {
+            "id": "step1",
+            "value": {
+                "type": "rawscript",
+                "content": "export async function main() { return 'Hello from API Flow'; }",
+                "language": "deno"
+            }
+        }
+    ]
+}

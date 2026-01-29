@@ -1,4 +1,4 @@
-const { generateNewsScript } = require('../gemini_news_search');
+const { generateNewsScript } = require('../lib/gemini_news_search');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 // GoogleGenerativeAI 모킹
@@ -53,9 +53,14 @@ describe('gemini_news_search Module (TDD)', () => {
     });
 
     test('Gemini API 호출 실패 시 에러가 전파되어야 함', async () => {
+        // 의도된 에러 로그 출력 방지
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => { });
+
         mockGenerateContent.mockRejectedValue(new Error('Gemini Error'));
 
         await expect(generateNewsScript('keyword'))
             .rejects.toThrow('Gemini Error');
+
+        consoleSpy.mockRestore();
     });
 });

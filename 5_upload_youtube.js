@@ -1,9 +1,9 @@
 /**
- * @param {string} videoPath - Path to the final mp4 file
- * @param {object} scriptData - Script data to extract title/desc
+ * @param {string} videoPath - 최종 mp4 파일 경로
+ * @param {object} scriptData - 요약 정보 추출용 데이터
  */
-export async function main(videoPath, scriptData) {
-    const { uploadToYouTube } = await import("#root/youtube_uploader.js");
+async function main(videoPath, scriptData) {
+    const { uploadToYouTube } = require("./lib/youtube_uploader");
 
     const videoTitle = `[AI News] ${scriptData.summary.substring(0, 50)}...`;
     const videoDesc = scriptData.summary;
@@ -20,3 +20,5 @@ export async function main(videoPath, scriptData) {
         url: `https://www.youtube.com/watch?v=${result.id}`
     };
 }
+
+module.exports = { main };

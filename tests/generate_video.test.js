@@ -40,7 +40,7 @@ describe('generate_video Module', () => {
 
         // 모듈을 매번 새로 로드하여 최신 mock 반영
         jest.isolateModules(() => {
-            videoGen = require('../generate_video');
+            videoGen = require('../lib/generate_video');
         });
     });
 

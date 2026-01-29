@@ -1,4 +1,4 @@
-const { uploadToYouTube } = require('../youtube_uploader');
+const { uploadToYouTube } = require('../lib/youtube_uploader');
 const { google } = require('googleapis');
 const fs = require('fs');
 

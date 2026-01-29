@@ -14,16 +14,17 @@
 
 ---
 
-## 🏗 아키텍처 및 파이프라인
+### 🏗 아키텍처 및 파이프라인
 
-전체 프로세스는 다음 5단계의 모듈로 구성됩니다:
+전체 프로세스는 다음 7단계의 모듈로 구성됩니다:
 
-1.  **News Search** (`openai_news_search.js` / `gemini_news_search.js`)
-2.  **Voice Generation** (`generate_batch_tts.js`)
-3.  **Image Generation** (`generate_images.js`)
-4.  **Video Assembly** (`generate_video.js`)
-5.  **YouTube Upload** (`youtube_uploader.js`)
-6.  **Email Notification** (`email_notifier.js`)
+0.  **News Collection** (`0_collect_news.js`): 키워드를 바탕으로 네이버 뉴스 등에서 기사 수집 및 컨텍스트 생성.
+1.  **News Script** (`1_get_news_script.js`): 수집된 정보를 바탕으로 AI 대본 생성.
+2.  **Voice Generation** (`2_generate_tts.js`): 배역별 OpenAI TTS 음성 생성.
+3.  **Image Generation** (`3_generate_images.js`): DALL-E 이미지 생성 및 엔티티 도메인 기반 로고 합성.
+4.  **Video Assembly** (`4_assemble_video.js`): FFmpeg을 사용한 최종 영상 인코딩.
+5.  **YouTube Upload** (`5_upload_youtube.js`): YouTube Data API v3를 통한 자동 업로드.
+6.  **Email Notification** (`6_send_email.js`): 완료 리포트/알림 발송.
 
 ---
 
@@ -32,26 +33,26 @@
 ```
 
 ### 2. 파이프라인 설정 (`config.json`)
-화면 비율, 이미지 스타일, AI 프롬프트 등을 `config.json`에서 자유롭게 커스터마이징할 수 있습니다:
+화면 비율, 이미지 스타일, 뉴스 수집 개수 등을 `config.json`에서 자유롭게 커스터마이징할 수 있습니다:
 ```json
 {
+  "newsScraper": {
+    "maxItems": 5
+  },
   "imageGeneration": {
     "size": "1792x1024",
     "style": "Simplified cartoon style..."
-  },
-  "videoSettings": {
-    "width": 1920,
-    "height": 1080
   }
 }
 ```
 
-### 2. 서비스 실행 (Docker)
+### 3. 서비스 실행 (Docker)
 Windmill 및 Postgres를 포함한 전체 스택을 실행합니다:
 ```bash
 docker compose up -d
 ```
 -   **Windmill UI**: [http://localhost:8000](http://localhost:8000)
+-   **ID/PW**: `admin@windmill.dev` / `admin`
 
 ---
 
@@ -82,10 +83,12 @@ npm test tests/generate_images.test.js
 
 ## 📂 파일 구조
 
--   `tests/`: Jest 기반 유닛 테스트 파일
--   `videos/scenes/`: 작업 중 생성되는 중간 소스 (MP3, PNG, TXT)
--   `videos/final_video.mp4`: 최종 완성 영상
--   `windmill_scripts/`: Windmill 이식용 독립 실행 스크립트
+-   `0_~ 6_`: 단계별 파이프라인 실행 스크립트.
+-   `lib/`: 핵심 기능 모듈 (스크래퍼, 생성기, 유틸리티 등).
+-   `tests/`: Jest 기반 유닛 테스트 파일.
+-   `videos/news_context.json`: 수집된 뉴스 원본 데이터.
+-   `videos/scenes/`: 작업 중 생성되는 중간 소스 (MP3, PNG, TXT).
+-   `videos/final_video.mp4`: 최종 완성 영상.
 
 ---
 

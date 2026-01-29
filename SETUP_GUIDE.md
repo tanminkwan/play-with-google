@@ -81,37 +81,44 @@ docker compose up -d --build
 
 전체 파이프라인을 실행하기 전, 각 단계를 개별적으로 테스트할 수 있습니다.
 
-### 4.1 뉴스 검색 및 대본 생성
+### 4.1 뉴스 데이터 수집 (Step 0)
 ```bash
-# [키워드] [언어: Korean/English]
-node openai_news_search.js "Apple Vision Pro" "Korean"
+# [키워드] [가져올 뉴스 개수]
+node 0_collect_news.js "삼성전자" 3
 ```
 
-### 4.2 음성 파일 생성 (TTS)
+### 4.2 뉴스 대본 생성 (Step 1)
+수집된 뉴스 정보를 바탕으로 대본을 만듭니다.
 ```bash
-node generate_batch_tts.js
+# [언어: Korean/English] [모델: openai/gemini]
+node 1_get_news_script.js "Korean" "openai"
 ```
 
-### 4.3 이미지 생성 (DALL-E)
+### 4.3 음성 파일 생성 (TTS)
 ```bash
-node generate_images.js
+node 2_generate_tts.js
 ```
 
-### 4.4 영상 합성 (FFmpeg)
+### 4.4 이미지 생성 (DALL-E)
 ```bash
-node generate_video.js
+node 3_generate_images.js
 ```
 
-### 4.5 YouTube 업로드
+### 4.5 영상 합성 (FFmpeg)
 ```bash
-node youtube_uploader.js
+node 4_assemble_video.js
 ```
 
-### 4.6 전체 파이프라인 한 번에 실행 (추천)
+### 4.6 YouTube 업로드
+```bash
+node 5_upload_youtube.js
+```
+
+### 4.7 전체 파이프라인 한 번에 실행 (추천)
 모든 단계를 자동으로 순차 실행합니다.
 ```bash
-# node pipeline.js [키워드] [언어]
-node pipeline.js "전기차 화재 문제" "Korean"
+# node pipeline.js [키워드] [언어] [모델]
+node pipeline.js "전기차 화재 문제" "Korean" "openai"
 ```
 
 ---

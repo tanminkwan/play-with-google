@@ -42,7 +42,7 @@ describe('generate_images Module', () => {
 
         // 헬퍼: 모듈을 매번 새로 로드하여 최신 mock 반영
         jest.isolateModules(() => {
-            imageGen = require('../generate_images');
+            imageGen = require('../lib/generate_images');
         });
     });
 

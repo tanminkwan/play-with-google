@@ -8,11 +8,20 @@ token.json
 
 # Generated Content & Temp Files
 news_script.json
-videos/**/*.mp3
-videos/**/*.png
-videos/**/*.txt
-videos/**/*.mp4
+videos/**
 !videos/**/.gitkeep
+*.txt
+*.html
+*.json
+!package.json
+!package-lock.json
+!config.json
+!daily_news_pipeline.json
+!openapi_spec.json
+!flow_test.json
+
+# Large Binaries
+wmill
 
 # OS Files
 .DS_Store

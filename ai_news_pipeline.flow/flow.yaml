@@ -1,0 +1,72 @@
+summary: "AI News Automation Pipeline"
+description: "Automatically generates news scripts, TTS, images, and assembles video for YouTube upload."
+schema:
+  type: "object"
+  properties:
+    keyword:
+      type: "string"
+      default: "AI Technology"
+    language:
+      type: "string"
+      default: "Korean"
+    model:
+      type: "string"
+      default: "openai"
+value:
+  modules:
+    - id: step_1_get_script
+      value:
+        type: script
+        path: "news_automation/1_get_news_script"
+        input_transforms:
+          keyword:
+            type: javascript
+            expr: "flow_input.keyword"
+          language:
+            type: javascript
+            expr: "flow_input.language"
+          model:
+            type: javascript
+            expr: "flow_input.model"
+
+    - id: step_2_generate_tts
+      value:
+        type: script
+        path: "news_automation/2_generate_tts"
+        input_transforms:
+          scriptData:
+            type: javascript
+            expr: "results.step_1_get_script"
+
+    - id: step_3_generate_images
+      value:
+        type: script
+        path: "news_automation/3_generate_images"
+        input_transforms: {}
+
+    - id: step_4_assemble_video
+      value:
+        type: script
+        path: "news_automation/4_assemble_video"
+        input_transforms: {}
+
+    - id: step_5_upload_youtube
+      value:
+        type: script
+        path: "news_automation/5_upload_youtube"
+        input_transforms:
+          scriptData:
+            type: javascript
+            expr: "results.step_1_get_script"
+
+    - id: step_6_send_email
+      value:
+        type: script
+        path: "news_automation/6_send_email"
+        input_transforms:
+          scriptData:
+            type: javascript
+            expr: "results.step_1_get_script"
+          videoId:
+            type: javascript
+            expr: "results.step_5_upload_youtube.id"

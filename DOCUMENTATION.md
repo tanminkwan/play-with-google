@@ -7,18 +7,24 @@
 ```mermaid
 graph TD
     %% Input
-    User([USER: Keyword, Language, AI Model]) --> ScriptGen
+    User([USER: Keyword, Language, AI Model]) --> NewsColl
+
+    %% Step 0: News Collection
+    subgraph "Phase 0: Data Collection"
+        NewsColl[0. News Scraper<br/>'Naver News Scraper']
+        NewsColl --> NewsCtx{news_context.json}
+    end
 
     %% Step 1: Script Generation
-    subgraph "Phase 1: Knowledge & Scripting"
-        ScriptGen[1. AI News Search<br/>'gpt-4o' or 'gemini'] 
+    subgraph "Phase 1: Scripting"
+        NewsCtx --> ScriptGen[1. AI Script Generator<br/>'gpt-4o' or 'gemini'] 
         ScriptGen --> JSONData{news_script.json}
     end
 
     %% Step 2 & 3: Resource Generation (Parallel)
     subgraph "Phase 2: Asset Production (Parallel)"
         JSONData -->|Dialogue| TTSGen[2. Batch TTS<br/>OpenAI 'tts-1']
-        JSONData -->|Context| PromptOpt[3-1. Prompt & Entity/Domain Optimization<br/>'gpt-4o']
+        JSONData -->|Context| PromptOpt[3-1. Prompt & Entity Optimization<br/>'gpt-4o']
         
         PromptOpt -->|Visual Prompt| ImageGen[3-2. Image Generation<br/>'dall-e-3']
         PromptOpt -->|Entity Domain| LogoFetch[3-3. Logo Fetching<br/>'Google Favicon API']
@@ -46,19 +52,23 @@ graph TD
 
     %% Styling
     style User fill:#f9f,stroke:#333,stroke-width:2px
-    style JSONData fill:#fff4dd,stroke:#d4a017,stroke-width:2px
+    style NewsCtx fill:#fff4dd,stroke:#d4a017,stroke-width:2px
+    style JSONData fill:#fff4dd,stroke:#d4a017,stroke-width:1px
     style MasterVideo fill:#e1f5fe,stroke:#01579b,stroke-width:3px
     style FinalResult fill:#ffcdd2,stroke:#b71c1c,stroke-width:2px
-    style LogoFetch fill:#e8f5e9,stroke:#2e7d32,stroke-width:1px
 ```
 
 ---
 
 ## 2. 모듈별 동작 원리 및 AI 서비스
 
-### 2.1 뉴스 검색 및 대본 생성
+### 2.0 뉴스 데이터 수집 (Step 0)
+*   **사용 도구**: `lib/naver_news_scraper.js`
+*   **동작 원리**: 사용자가 입력한 키워드를 바탕으로 네이버 뉴스 검색 결과에서 기사 제목, 요약, 본문 링크 등을 수집합니다. 수집된 데이터는 `videos/news_context.json`에 저장되어 대본 생성의 근거 자료로 활용됩니다.
+
+### 2.1 뉴스 검색 및 대본 생성 (Step 1)
 *   **사용 서비스**: OpenAI `gpt-4o` 또는 Google `gemini-2.0-flash-lite`
-*   **동작 원리**: 사용자가 입력한 키워드를 바탕으로 최신 뉴스를 수집하고, 두 명의 앵커(`Anchor A`, `Anchor B`)가 대화하는 형식의 스크립트(JSON)를 생성합니다. 다국어 파라미터를 통해 한국어/영어 선택이 가능합니다.
+*   **동작 원리**: 저장된 `news_context.json` 자료를 AI에게 전달하여 실제 뉴스 기사에 기반한 신뢰도 높은 대본을 생성합니다. 두 명의 앵커(`Anchor A`, `Anchor B`)가 대화하는 형식의 스크립트(JSON)를 생성하며, 한국어/영어 선택이 가능합니다.
 
 ### 2.2 음성 합성 (Batch TTS)
 *   **사용 서비스**: OpenAI `tts-1`
@@ -111,6 +121,9 @@ FFmpeg이 포함된 커스텀 이미지를 통해 컨테이너 기반 워커에�
 ## 5. 중앙 설정 시스템 상세 가이드 (`config.json`)
 
 본 프로젝트의 모든 핵심 로직은 `config.json`을 통해 제어됩니다. 하드코딩을 배제하고 설정파일 수정만으로 파이프라인의 성격을 변경할 수 있습니다.
+
+### 5.0 `newsScraper` (뉴스 수집 설정)
+*   **`maxItems`**: 검색 결과에서 가져올 최대 뉴스 기사 개수 (기본 3~5개 권장). 개수가 많을수록 풍부한 컨텍스트를 제공하지만 AI 처리 비용이 증가합니다.
 
 ### 5.1 `imageGeneration` (DALL-E 이미지 생성)
 *   **`model`**: 사용 모델 (`dall-e-3` 고정 권장).

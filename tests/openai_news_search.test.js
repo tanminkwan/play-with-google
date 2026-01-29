@@ -1,4 +1,4 @@
-const { generateNewsScriptWithOpenAI } = require('../openai_news_search');
+const { generateNewsScriptWithOpenAI } = require('../lib/openai_news_search');
 const { OpenAI } = require('openai');
 
 // OpenAI 모듈 모킹
@@ -17,7 +17,7 @@ describe('openai_news_search Module', () => {
         process.env.OPENAI_API_KEY = 'test-api-key';
 
         jest.isolateModules(() => {
-            newsSearch = require('../openai_news_search');
+            newsSearch = require('../lib/openai_news_search');
         });
     });
 

@@ -1,33 +1,31 @@
-const { generateNewsScriptWithOpenAI } = require('./openai_news_search');
-const { generateBatchTTS } = require('./generate_batch_tts');
-const { generateImagesForScenes } = require('./generate_images');
-const { generateFinalVideo } = require('./generate_video');
-const { uploadToYouTube } = require('./youtube_uploader');
-const { sendUploadNotification } = require('./email_notifier');
+const collectNews = require('./0_collect_news');
+const getNewsScript = require('./1_get_news_script');
+const { generateBatchTTS } = require('./lib/generate_batch_tts');
+const { generateImagesForScenes } = require('./lib/generate_images');
+const { generateFinalVideo } = require('./lib/generate_video');
+const { uploadToYouTube } = require('./lib/youtube_uploader');
+const { sendUploadNotification } = require('./lib/email_notifier');
 const fs = require('fs');
 const path = require('path');
 require('dotenv').config();
 
 /**
- * 전 과정 자동 실행 파이프라인
+ * 전 과정 자동 실행 파이프라인 (Refactored for keyword-based scraping)
+ * @param {string} keyword - 검색할 뉴스 키워드
+ * @param {string} language - 결과 언어 (기본: Korean)
+ * @param {string} model - AI 모델 (기본: openai)
  */
-async function runFullPipeline(keyword, language = "Korean", model = "openai") {
-    console.log(`\n🚀 Starting Full AI News Pipeline for: "${keyword}" (${language})\n`);
+async function runFullPipeline(keyword = "실시간", language = "Korean", model = "openai") {
+    console.log(`\n🚀 Starting Full AI News Pipeline (Keyword: ${keyword})\n`);
 
     try {
-        // Step 0: 기존 작업 데이터 삭제 (Cleanup)
-        const scenesDir = path.join(__dirname, 'videos', 'scenes');
-        if (fs.existsSync(scenesDir)) {
-            console.log("Step 0: Cleaning up previous scene assets...");
-            const files = fs.readdirSync(scenesDir);
-            for (const file of files) {
-                fs.unlinkSync(path.join(scenesDir, file));
-            }
-        }
-        // Step 1: 뉴스 검색 및 대본 생성
-        console.log("Step 1: Generating News Script...");
-        const scriptData = await generateNewsScriptWithOpenAI(keyword, language);
-        fs.writeFileSync('news_script.json', JSON.stringify(scriptData, null, 2));
+        // Step 0: 뉴스 수집 및 문맥 생성 (config.json의 maxItems 등 설정 자동 적용)
+        console.log("Step 0: Collecting News Data...");
+        await collectNews.main(keyword);
+
+        // Step 1: 대본 생성 (수집된 videos/news_context.json 파일을 참조함)
+        console.log("\nStep 1: Generating News Script...");
+        const scriptData = await getNewsScript.main(language, model);
 
         // Step 2: TTS 음성 생성
         console.log("\nStep 2: Generating Speech (TTS)...");
@@ -71,15 +69,11 @@ async function runFullPipeline(keyword, language = "Korean", model = "openai") {
 
 // CLI 실행
 if (require.main === module) {
-    const keyword = process.argv[2];
+    const keyword = process.argv[2] || "실시간"; // 키워드가 없으면 실시간 뉴스
     const language = process.argv[3] || "Korean";
+    const model = process.argv[4] || "openai";
 
-    if (!keyword) {
-        console.log("Usage: node pipeline.js <keyword> [language]");
-        process.exit(1);
-    }
-
-    runFullPipeline(keyword, language);
+    runFullPipeline(keyword, language, model);
 }
 
 module.exports = { runFullPipeline };

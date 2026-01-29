@@ -1,0 +1,123 @@
+{
+    "summary": "Daily News Automation Pipeline",
+    "description": "Automated pipeline: News -> TTS/Image -> Video -> Upload -> Email",
+    "schema": {
+        "type": "object",
+        "properties": {
+            "keyword": {
+                "type": "string",
+                "description": "Topic to search for",
+                "default": "Artificial Intelligence"
+            },
+            "language": {
+                "type": "string",
+                "default": "Korean",
+                "enum": [
+                    "Korean",
+                    "English"
+                ]
+            }
+        },
+        "required": [
+            "keyword"
+        ]
+    },
+    "value": {
+        "modules": [
+            {
+                "id": "step1_news",
+                "value": {
+                    "type": "script",
+                    "path": "u/admin/step1_news",
+                    "input_transforms": {
+                        "keyword": {
+                            "type": "javascript",
+                            "expr": "flow_input.keyword"
+                        },
+                        "language": {
+                            "type": "javascript",
+                            "expr": "flow_input.language"
+                        }
+                    }
+                }
+            },
+            {
+                "id": "step2_tts",
+                "value": {
+                    "type": "script",
+                    "path": "u/admin/step2_tts",
+                    "input_transforms": {
+                        "scriptData": {
+                            "type": "javascript",
+                            "expr": "results.step1_news"
+                        }
+                    }
+                }
+            },
+            {
+                "id": "step3_images",
+                "value": {
+                    "type": "script",
+                    "path": "u/admin/step3_images",
+                    "input_transforms": {
+                        "scriptData": {
+                            "type": "javascript",
+                            "expr": "results.step1_news"
+                        }
+                    }
+                }
+            },
+            {
+                "id": "step4_video",
+                "value": {
+                    "type": "script",
+                    "path": "u/admin/step4_video",
+                    "input_transforms": {
+                        "scriptData": {
+                            "type": "javascript",
+                            "expr": "results.step1_news"
+                        }
+                    }
+                }
+            },
+            {
+                "id": "step5_upload",
+                "value": {
+                    "type": "script",
+                    "path": "u/admin/step5_upload",
+                    "input_transforms": {
+                        "videoPath": {
+                            "type": "javascript",
+                            "expr": "results.step4_video"
+                        },
+                        "title": {
+                            "type": "javascript",
+                            "expr": "results.step1_news.title"
+                        },
+                        "description": {
+                            "type": "javascript",
+                            "expr": "results.step1_news.intro"
+                        }
+                    }
+                }
+            },
+            {
+                "id": "step6_email",
+                "value": {
+                    "type": "script",
+                    "path": "u/admin/step6_email",
+                    "input_transforms": {
+                        "subject": {
+                            "type": "static",
+                            "value": "News Video Uploaded Successfully"
+                        },
+                        "text": {
+                            "type": "javascript",
+                            "expr": "'Video uploaded: ' + results.step5_upload.url"
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

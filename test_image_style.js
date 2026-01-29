@@ -1,4 +1,4 @@
-const { generateImagesForScenes } = require('./generate_images');
+const { generateImagesForScenes } = require('./lib/generate_images');
 const fs = require('fs');
 const path = require('path');
 require('dotenv').config();

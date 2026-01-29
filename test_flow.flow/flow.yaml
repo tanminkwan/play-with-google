@@ -1,0 +1,18 @@
+summary: "Simple Test Flow"
+description: "A minimal flow to verify CLI deployment."
+schema:
+  type: "object"
+  properties:
+    u_name:
+      type: "string"
+      default: "Windmill User"
+value:
+  modules:
+    - id: hello_step
+      value:
+        type: script
+        path: "test/test_script"
+        input_transforms:
+          name:
+            type: javascript
+            expr: "flow_input.u_name"

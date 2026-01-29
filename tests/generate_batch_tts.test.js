@@ -35,7 +35,7 @@ describe('generate_batch_tts Module', () => {
         });
 
         jest.isolateModules(() => {
-            batchTTS = require('../generate_batch_tts');
+            batchTTS = require('../lib/generate_batch_tts');
         });
     });
 

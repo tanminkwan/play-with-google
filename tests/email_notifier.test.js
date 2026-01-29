@@ -1,4 +1,4 @@
-const { sendUploadNotification } = require('../email_notifier');
+const { sendUploadNotification } = require('../lib/email_notifier');
 const nodemailer = require('nodemailer');
 
 // nodemailer 모킹
@@ -37,6 +37,9 @@ describe('Email Notifier Unit Tests', () => {
     });
 
     it('should handle email sending failure', async () => {
+        // 의도된 에러 로그 출력 방지
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => { });
+
         sendMailMock.mockRejectedValue(new Error('SMTP Error'));
 
         const mockData = {
@@ -46,5 +49,7 @@ describe('Email Notifier Unit Tests', () => {
         };
 
         await expect(sendUploadNotification(mockData)).rejects.toThrow('SMTP Error');
+
+        consoleSpy.mockRestore();
     });
 });
