@@ -1,5 +1,5 @@
-summary: "AI News Automation Pipeline"
-description: "Automatically generates news scripts, TTS, images, and assembles video for YouTube upload."
+summary: "AI News Automation Pipeline (7-Step)"
+description: "End-to-end automation: News scraping -> Scripting -> TTS -> Image Gen -> Assembly -> Upload -> Email."
 schema:
   type: "object"
   properties:
@@ -14,14 +14,20 @@ schema:
       default: "openai"
 value:
   modules:
+    - id: step_0_collect_news
+      value:
+        type: script
+        path: "news_automation/0_collect_news"
+        input_transforms:
+          keyword:
+            type: javascript
+            expr: "flow_input.keyword"
+
     - id: step_1_get_script
       value:
         type: script
         path: "news_automation/1_get_news_script"
         input_transforms:
-          keyword:
-            type: javascript
-            expr: "flow_input.keyword"
           language:
             type: javascript
             expr: "flow_input.language"

@@ -1,12 +1,20 @@
-const { scrapeNaverNews, formatNaverContext } = require("./lib/naver_news_scraper");
-const fs = require('fs');
-const path = require('path');
+import { scrapeNaverNews, formatNaverContext } from "./lib/naver_news_scraper.js";
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // 설정 파일 로드
 const configPath = path.join(__dirname, 'config.json');
 const config = fs.existsSync(configPath) ? JSON.parse(fs.readFileSync(configPath, 'utf8')) : {};
 
-async function main(keyword = "삼성전자", limit = config.newsScraper?.maxItems || 3) {
+export async function main(keyword, limit = config.newsScraper?.maxItems || 3) {
+    if (!keyword) {
+        throw new Error("Error: Keyword is required for news collection.");
+    }
     try {
         console.log(`Starting Collection for: ${keyword}`);
         const data = await scrapeNaverNews(keyword, limit);
@@ -35,9 +43,7 @@ async function main(keyword = "삼성전자", limit = config.newsScraper?.maxIte
     }
 }
 
-if (require.main === module) {
+if (process.argv[1] && process.argv[1].includes('0_collect_news.js')) {
     const args = process.argv.slice(2);
     main(args[0], args[1] ? parseInt(args[1]) : 3);
 }
-
-module.exports = { main };

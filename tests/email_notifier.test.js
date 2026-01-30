@@ -1,21 +1,32 @@
-const { sendUploadNotification } = require('../lib/email_notifier');
-const nodemailer = require('nodemailer');
+import { jest } from '@jest/globals';
 
-// nodemailer 모킹
-jest.mock('nodemailer');
+const sendMailMock = jest.fn();
+
+jest.unstable_mockModule('nodemailer', () => ({
+    default: {
+        createTransport: jest.fn().mockReturnValue({
+            sendMail: sendMailMock
+        })
+    }
+}));
+
+const { default: nodemailer } = await import('nodemailer');
+const { sendUploadNotification } = await import('../lib/email_notifier.js');
+import fs from 'fs';
 
 describe('Email Notifier Unit Tests', () => {
-    let sendMailMock;
 
     beforeEach(() => {
-        sendMailMock = jest.fn().mockResolvedValue({ messageId: 'test-id' });
-        nodemailer.createTransport.mockReturnValue({
-            sendMail: sendMailMock
-        });
+        sendMailMock.mockClear();
+        sendMailMock.mockResolvedValue({ messageId: 'test-id' });
+
+        jest.spyOn(fs, 'readFileSync').mockReturnValue(JSON.stringify({
+            notification: { emails: 'test@example.com' }
+        }));
     });
 
     afterEach(() => {
-        jest.clearAllMocks();
+        jest.restoreAllMocks();
     });
 
     it('should send an email with correct YouTube info', async () => {
@@ -29,7 +40,7 @@ describe('Email Notifier Unit Tests', () => {
 
         expect(nodemailer.createTransport).toHaveBeenCalled();
         expect(sendMailMock).toHaveBeenCalledWith(expect.objectContaining({
-            to: expect.anything(), // Can be string or array
+            to: expect.anything(),
             subject: expect.stringContaining(mockData.title),
             html: expect.stringContaining(mockData.videoId)
         }));
@@ -37,9 +48,7 @@ describe('Email Notifier Unit Tests', () => {
     });
 
     it('should handle email sending failure', async () => {
-        // 의도된 에러 로그 출력 방지
         const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => { });
-
         sendMailMock.mockRejectedValue(new Error('SMTP Error'));
 
         const mockData = {
@@ -49,7 +58,6 @@ describe('Email Notifier Unit Tests', () => {
         };
 
         await expect(sendUploadNotification(mockData)).rejects.toThrow('SMTP Error');
-
         consoleSpy.mockRestore();
     });
 });

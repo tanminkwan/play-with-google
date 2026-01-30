@@ -1,22 +1,24 @@
-const { generateNewsScript } = require('../lib/gemini_news_search');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+import { jest } from '@jest/globals';
 
-// GoogleGenerativeAI 모킹
-jest.mock('@google/generative-ai');
+const mockGenerateContent = jest.fn();
+
+jest.unstable_mockModule('@google/generative-ai', () => {
+    return {
+        GoogleGenerativeAI: jest.fn().mockImplementation(() => ({
+            getGenerativeModel: jest.fn().mockReturnValue({
+                generateContent: mockGenerateContent
+            })
+        }))
+    };
+});
+
+const { GoogleGenerativeAI } = await import('@google/generative-ai');
+const { generateNewsScript } = await import('../lib/gemini_news_search.js');
 
 describe('gemini_news_search Module (TDD)', () => {
-    let mockGenerateContent;
 
     beforeEach(() => {
-        mockGenerateContent = jest.fn();
-        const mockModel = {
-            generateContent: mockGenerateContent
-        };
-        const mockGenAI = {
-            getGenerativeModel: jest.fn().mockReturnValue(mockModel)
-        };
-        GoogleGenerativeAI.mockImplementation(() => mockGenAI);
-
+        mockGenerateContent.mockClear();
         process.env.GEMINI_API_KEY = 'test-gemini-key';
     });
 

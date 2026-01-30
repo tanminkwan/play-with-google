@@ -17,12 +17,12 @@
         "defaultModel": "openai",
         "openaiModel": "gpt-4o",
         "geminiModel": "gemini-2.0-flash-lite",
-        "scriptDuration": "2.0-minute",
+        "scriptDuration": "4.0-minute",
         "anchorNames": {
             "A": "멍청이",
             "B": "또라이"
         },
-        "newsSearchPrompt": "Keyword: \"${keyword}\"\nLanguage: \"${language}\"\n\nTask:\n1. Use your internal knowledge to find the latest news about this keyword.\n2. Create a ${duration} natural dialogue script between two news anchors in ${language}:\n   - ${nameA}: Male, enthusiastic voice, asks deep questions.\n   - ${nameB}: Female, expert/friendly voice, provides key details.\n3. Important: The anchors MUST refer to each other by their names (${nameA}, ${nameB}) naturally during the conversation.\n4. The tone must be engaging, conversational, and polished (NotebookLM podcast style).\n5. Include natural filler words and reactions appropriate for ${language} speakers.\n\nOutput format: MUST be a valid JSON object only:\n{\n  \"summary\": \"Overall summary of the topic in ${language}\",\n  \"script\": [\n    { \"speaker\": \"${nameA}\", \"text\": \"...\", \"emotion\": \"excited\" },\n    { \"speaker\": \"${nameB}\", \"text\": \"...\", \"emotion\": \"informative\" }\n  ]\n}"
+        "newsSearchPrompt": "Keyword: \"${keyword}\"\nLanguage: \"${language}\"\n\nTask:\n1. Analyze the provided real-time news data (which includes publication dates) to find the absolute latest developments about \"${keyword}\".\n2. Create a ${duration} natural dialogue script between two news anchors in ${language}:\n   - ${nameA}: Male, enthusiastic voice, asks deep questions about the newest findings.\n   - ${nameB}: Female, expert/friendly voice, provides key details and explains the timeline.\n3. Important: The anchors MUST refer to each other by their names (${nameA}, ${nameB}) naturally. Focus on the most recent events from the provided context.\n4. Prioritize information from the most recent articles. If there are conflicting details, follow the latest one.\n5. The tone must be engaging, conversational, and polished (NotebookLM podcast style).\n6. Include natural filler words and reactions appropriate for ${language} speakers.\n\nOutput format: MUST be a valid JSON object only:\n{\n  \"summary\": \"Overall summary of the topic in ${language}\",\n  \"script\": [\n    { \"speaker\": \"${nameA}\", \"text\": \"...\", \"emotion\": \"excited\" },\n    { \"speaker\": \"${nameB}\", \"text\": \"...\", \"emotion\": \"informative\" }\n  ]\n}"
     },
     "videoSettings": {
         "width": 1920,
@@ -64,7 +64,7 @@
     },
     "newsScraper": {
         "maxItems": 5,
-        "searchUrl": "https://search.naver.com/search.naver?where=news&query=${keyword}&sort=0",
+        "searchUrl": "https://search.naver.com/search.naver?where=news&query=${keyword}&sort=1",
         "rankingUrl": "https://news.naver.com/main/ranking/popularDay.naver",
         "articleSelectors": [
             "#newsct_article",

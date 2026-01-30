@@ -1,28 +1,35 @@
-const fs = require('fs');
-const path = require('path');
-const child_process = require('child_process');
+import { jest } from '@jest/globals';
+import fs from 'fs';
+import * as child_process from 'child_process';
 
-// 모킹
-jest.mock('fs');
-jest.mock('child_process');
+// We need to import the module under test AFTER mocks/spies are set up if they affect module loading
+// but generateFinalVideo uses spawn/execSync which are usually looked up at runtime or from imports.
+// In generate_video.js: import { spawn, execSync } from 'child_process';
+
+const mockSpawn = jest.fn();
+const mockExecSync = jest.fn();
+
+jest.unstable_mockModule('child_process', () => ({
+    spawn: mockSpawn,
+    execSync: mockExecSync
+}));
+
+const { generateFinalVideo } = await import('../lib/generate_video.js');
 
 describe('generate_video Module', () => {
-    let videoGen;
 
     beforeEach(() => {
-        // fs 모킹
-        fs.existsSync.mockImplementation((filePath) => {
-            if (filePath.includes('scene_0_logo.png')) return true;
-            if (filePath.includes('config.json')) return true;
+        // fs 스파이
+        jest.spyOn(fs, 'existsSync').mockImplementation((filePath) => {
             return true;
         });
-        fs.readdirSync.mockImplementation((dir) => {
+        jest.spyOn(fs, 'readdirSync').mockImplementation((dir) => {
             if (dir.includes('scenes')) {
                 return ['scene_0.mp3', 'scene_0.png', 'scene_0_logo.png', 'scene_1.mp3', 'scene_1.png'];
             }
             return [];
         });
-        fs.readFileSync.mockImplementation((filePath) => {
+        jest.spyOn(fs, 'readFileSync').mockImplementation((filePath) => {
             if (filePath.includes('config.json')) return JSON.stringify({
                 videoSettings: { width: 1920, height: 1080 },
                 logoOverlay: { enabled: true, position: 'top-right', width: 150 }
@@ -30,29 +37,27 @@ describe('generate_video Module', () => {
             return '';
         });
 
-        // child_process 모킹
-        child_process.spawn.mockReturnValue({
+        // spawn, execSync 모킹
+        mockSpawn.mockClear();
+        mockExecSync.mockClear();
+
+        mockSpawn.mockReturnValue({
             on: jest.fn((event, callback) => { if (event === 'close') callback(0); }),
             stderr: { on: jest.fn() },
             stdout: { on: jest.fn() }
         });
-        child_process.execSync.mockReturnValue(Buffer.from("5.0"));
-
-        // 모듈을 매번 새로 로드하여 최신 mock 반영
-        jest.isolateModules(() => {
-            videoGen = require('../lib/generate_video');
-        });
+        mockExecSync.mockReturnValue(Buffer.from("5.0"));
     });
 
     afterEach(() => {
-        jest.clearAllMocks();
+        jest.restoreAllMocks();
     });
 
     test('로고 오버레이를 포함하여 최종 영상을 생성해야 함', async () => {
-        const result = await videoGen.generateFinalVideo();
+        const result = await generateFinalVideo();
 
-        expect(child_process.spawn).toHaveBeenCalled();
-        const args = child_process.spawn.mock.calls[0][1];
+        expect(mockSpawn).toHaveBeenCalled();
+        const args = mockSpawn.mock.calls[0][1];
         const filterComplex = args[args.indexOf('-filter_complex') + 1];
 
         // 로고 오버레이 로직이 포함되었는지 확인
@@ -61,7 +66,7 @@ describe('generate_video Module', () => {
     });
 
     test('장면 파일이 없으면 에러를 던져야 함', async () => {
-        fs.readdirSync.mockReturnValue([]);
-        await expect(videoGen.generateFinalVideo()).rejects.toThrow('No scenes found to process.');
+        jest.spyOn(fs, 'readdirSync').mockReturnValue([]);
+        await expect(generateFinalVideo()).rejects.toThrow('No scenes found to process.');
     });
 });

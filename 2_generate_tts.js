@@ -1,10 +1,9 @@
+import { generateBatchTTS } from "./lib/generate_batch_tts.js";
+
 /**
  * @param {object} scriptData - 1단계에서 생성된 스크립트 JSON
  */
-async function main(scriptData) {
-    const { generateBatchTTS } = require("./lib/generate_batch_tts");
+export async function main(scriptData) {
     const results = await generateBatchTTS(scriptData);
     return { audioFiles: results };
 }
-
-module.exports = { main };

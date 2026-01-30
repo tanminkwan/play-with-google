@@ -1,13 +1,15 @@
-const collectNews = require('./0_collect_news');
-const getNewsScript = require('./1_get_news_script');
-const { generateBatchTTS } = require('./lib/generate_batch_tts');
-const { generateImagesForScenes } = require('./lib/generate_images');
-const { generateFinalVideo } = require('./lib/generate_video');
-const { uploadToYouTube } = require('./lib/youtube_uploader');
-const { sendUploadNotification } = require('./lib/email_notifier');
-const fs = require('fs');
-const path = require('path');
-require('dotenv').config();
+import * as collectNews from './0_collect_news.js';
+import * as getNewsScript from './1_get_news_script.js';
+import { generateBatchTTS } from './lib/generate_batch_tts.js';
+import { generateImagesForScenes } from './lib/generate_images.js';
+import { generateFinalVideo } from './lib/generate_video.js';
+import { uploadToYouTube } from './lib/youtube_uploader.js';
+import { sendUploadNotification } from './lib/email_notifier.js';
+import fs from 'fs';
+import path from 'path';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 /**
  * 전 과정 자동 실행 파이프라인 (Refactored for keyword-based scraping)
@@ -15,7 +17,7 @@ require('dotenv').config();
  * @param {string} language - 결과 언어 (기본: Korean)
  * @param {string} model - AI 모델 (기본: openai)
  */
-async function runFullPipeline(keyword = "실시간", language = "Korean", model = "openai") {
+export async function runFullPipeline(keyword = "실시간", language = "Korean", model = "openai") {
     console.log(`\n🚀 Starting Full AI News Pipeline (Keyword: ${keyword})\n`);
 
     try {
@@ -68,12 +70,10 @@ async function runFullPipeline(keyword = "실시간", language = "Korean", model
 }
 
 // CLI 실행
-if (require.main === module) {
+if (process.argv[1] && process.argv[1].includes('pipeline.js')) {
     const keyword = process.argv[2] || "실시간"; // 키워드가 없으면 실시간 뉴스
     const language = process.argv[3] || "Korean";
     const model = process.argv[4] || "openai";
 
     runFullPipeline(keyword, language, model);
 }
-
-module.exports = { runFullPipeline };

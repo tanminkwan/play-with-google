@@ -1,14 +1,14 @@
+import fs from "fs";
+import path from "path";
+import { generateNewsScriptWithOpenAI } from "./lib/openai_news_search.js";
+import { generateNewsScript } from "./lib/gemini_news_search.js";
+
 /**
  * [Step 1] 저장된 뉴스 정보를 바탕으로 대본을 생성합니다.
  * @param {string} language - 언어
  * @param {string} model - 모델 (openai/gemini)
  */
-async function main(language = "Korean", model = "openai") {
-    const fs = require("fs");
-    const path = require("path");
-    const { generateNewsScriptWithOpenAI } = require("./lib/openai_news_search");
-    const { generateNewsScript } = require("./lib/gemini_news_search");
-
+export async function main(language = "Korean", model = "openai") {
     // 1. Step 0에서 생성된 뉴스 컨텍스트 파일 읽기
     const contextPath = path.resolve("./videos/news_context.json");
     let newsContext = null;
@@ -48,4 +48,7 @@ async function main(language = "Korean", model = "openai") {
     return scriptData;
 }
 
-module.exports = { main };
+if (process.argv[1] && process.argv[1].includes('1_get_news_script.js')) {
+    const args = process.argv.slice(2);
+    main(args[0], args[1]);
+}

@@ -1,46 +1,44 @@
-const { uploadToYouTube } = require('../lib/youtube_uploader');
-const { google } = require('googleapis');
-const fs = require('fs');
+import { jest } from '@jest/globals';
 
-// 모킹
-jest.mock('googleapis', () => ({
+const mockInsert = jest.fn();
+const mockOAuth2 = jest.fn().mockImplementation(() => ({
+    setCredentials: jest.fn(),
+    generateAuthUrl: jest.fn(),
+    getToken: jest.fn()
+}));
+
+jest.unstable_mockModule('googleapis', () => ({
     google: {
-        youtube: jest.fn(),
+        youtube: jest.fn().mockReturnValue({
+            videos: { insert: mockInsert }
+        }),
         auth: {
-            OAuth2: jest.fn().mockImplementation(() => ({
-                setCredentials: jest.fn(),
-                generateAuthUrl: jest.fn(),
-                getToken: jest.fn()
-            }))
+            OAuth2: mockOAuth2
         }
     }
 }));
-jest.mock('fs');
+
+const { google } = await import('googleapis');
+const { uploadToYouTube } = await import('../lib/youtube_uploader.js');
+import fs from 'fs';
 
 describe('youtube_uploader Module (TDD)', () => {
-    let mockInsert;
 
     beforeEach(() => {
-        mockInsert = jest.fn().mockResolvedValue({
-            data: { id: 'test-video-id' }
-        });
-        google.youtube.mockReturnValue({
-            videos: {
-                insert: mockInsert
-            }
-        });
+        mockInsert.mockClear();
+        mockInsert.mockResolvedValue({ data: { id: 'test-video-id' } });
 
-        fs.existsSync.mockReturnValue(true);
-        fs.readFileSync.mockReturnValue(JSON.stringify({ access_token: 'test-token' }));
-        fs.createReadStream.mockReturnValue({});
-        fs.statSync.mockReturnValue({ size: 1000 });
+        jest.spyOn(fs, 'existsSync').mockReturnValue(true);
+        jest.spyOn(fs, 'readFileSync').mockReturnValue(JSON.stringify({ access_token: 'test-token' }));
+        jest.spyOn(fs, 'createReadStream').mockReturnValue({});
+        jest.spyOn(fs, 'statSync').mockReturnValue({ size: 1000 });
 
         process.env.GOOGLE_CLIENT_ID = 'test-id';
         process.env.GOOGLE_CLIENT_SECRET = 'test-secret';
     });
 
     afterEach(() => {
-        jest.clearAllMocks();
+        jest.restoreAllMocks();
     });
 
     test('비디오를 성공적으로 YouTube에 업로드해야 함', async () => {
@@ -66,13 +64,13 @@ describe('youtube_uploader Module (TDD)', () => {
     });
 
     test('토큰 파일이 없으면 에러를 던져야 함', async () => {
-        fs.existsSync.mockImplementation((path) => !path.includes('token.json'));
+        jest.spyOn(fs, 'existsSync').mockImplementation((path) => !path.includes('token.json'));
         await expect(uploadToYouTube({ videoPath: 'test.mp4' }))
             .rejects.toThrow('OAuth token not found');
     });
 
     test('비디오 파일이 없으면 에러를 던져야 함', async () => {
-        fs.existsSync.mockImplementation((path) => !path.includes('test.mp4'));
+        jest.spyOn(fs, 'existsSync').mockImplementation((path) => !path.includes('test.mp4'));
         await expect(uploadToYouTube({ videoPath: 'test.mp4' }))
             .rejects.toThrow('Video file not found');
     });

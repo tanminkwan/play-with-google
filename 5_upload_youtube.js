@@ -1,10 +1,10 @@
+import { uploadToYouTube } from "./lib/youtube_uploader.js";
+
 /**
  * @param {string} videoPath - 최종 mp4 파일 경로
  * @param {object} scriptData - 요약 정보 추출용 데이터
  */
-async function main(videoPath, scriptData) {
-    const { uploadToYouTube } = require("./lib/youtube_uploader");
-
+export async function main(videoPath, scriptData) {
     const videoTitle = `[AI News] ${scriptData.summary.substring(0, 50)}...`;
     const videoDesc = scriptData.summary;
 
@@ -20,5 +20,3 @@ async function main(videoPath, scriptData) {
         url: `https://www.youtube.com/watch?v=${result.id}`
     };
 }
-
-module.exports = { main };

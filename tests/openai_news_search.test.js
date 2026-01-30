@@ -1,24 +1,22 @@
-const { generateNewsScriptWithOpenAI } = require('../lib/openai_news_search');
-const { OpenAI } = require('openai');
+import { jest } from '@jest/globals';
 
-// OpenAI 모듈 모킹
-jest.mock('openai');
+const mockCreate = jest.fn();
+
+jest.unstable_mockModule('openai', () => {
+    return {
+        OpenAI: jest.fn().mockImplementation(() => ({
+            chat: { completions: { create: mockCreate } }
+        }))
+    };
+});
+
+const { OpenAI } = await import('openai');
+const { generateNewsScriptWithOpenAI } = await import('../lib/openai_news_search.js');
 
 describe('openai_news_search Module', () => {
-    let mockCreate;
-    let newsSearch;
-
     beforeEach(() => {
-        mockCreate = jest.fn();
-        OpenAI.mockImplementation(() => ({
-            chat: { completions: { create: mockCreate } }
-        }));
-
+        mockCreate.mockClear();
         process.env.OPENAI_API_KEY = 'test-api-key';
-
-        jest.isolateModules(() => {
-            newsSearch = require('../lib/openai_news_search');
-        });
     });
 
     afterEach(() => {
@@ -38,7 +36,7 @@ describe('openai_news_search Module', () => {
         };
         mockCreate.mockResolvedValue(mockResponse);
 
-        const result = await newsSearch.generateNewsScriptWithOpenAI('test-keyword', 'Korean');
+        const result = await generateNewsScriptWithOpenAI('test-keyword', 'Korean');
 
         expect(result).toHaveProperty('summary', '테스트 요약');
         expect(result.script).toHaveLength(1);
@@ -46,7 +44,7 @@ describe('openai_news_search Module', () => {
 
     test('API 키가 없으면 에러를 던져야 함', async () => {
         delete process.env.OPENAI_API_KEY;
-        await expect(newsSearch.generateNewsScriptWithOpenAI('keyword'))
+        await expect(generateNewsScriptWithOpenAI('keyword'))
             .rejects.toThrow('OPENAI_API_KEY not found in .env file.');
     });
 });
